@@ -38,7 +38,18 @@ function onDrop(column: Task[], targetIndex: number) {
 
 `rankAfter(x)` is a pure function of `x` alone - it does not look at what already follows. That makes it perfect for appending, and **wrong** for inserting: drop two tasks after the same task and you get the same rank twice, colliding with the row you meant to sit before. `rankBetween` re-reads both neighbours, so the second drop sees the first drop's rank as its new bound and lands somewhere fresh.
 
-The trade-off is space. `rankBetween` halves the remaining gap each time; `rankAfter` steps by a fixed amount. That is why both exist. Use `rankAfter` to build, `rankBetween` to insert, and rebalance periodically if a column sees heavy repeated insertion at one position.
+The trade-off is space. Between two closed bounds `rankBetween` halves the remaining gap; `rankAfter` steps by a fixed amount. That is why both exist.
+
+**Open bounds are handled for you.** A bound of `null` says nothing exists on that side, so there is no neighbour to collide with and the fixed step is both safe and far cheaper. `rankBetween` delegates accordingly:
+
+| Call                      | Equivalent to       |
+| ------------------------- | ------------------- |
+| `rankBetween(null, x)`    | `rankBefore(x)`     |
+| `rankBetween(x, null)`    | `rankAfter(x)`      |
+| `rankBetween(null, null)` | `firstRank()`       |
+| `rankBetween(a, b)`       | midpoint, unchanged |
+
+This matters more than it looks. Repeatedly moving items to the top of a column with `rankBetween(null, first)` would otherwise halve the space below each time and exhaust it after about **669** operations - a reachable number. Delegating turns that into roughly **28,590**. `equidistantRanks` follows the same rule, so `equidistantRanks(1, a, b)` always equals `rankBetween(a, b)`.
 
 ## API
 
@@ -153,7 +164,7 @@ This keeps one unconditional guarantee: every rank this library returns sorts st
 
 ## Verification
 
-Validated by running this implementation with over **5,205 generated cases** and **1,093 stateful simulation steps** (repeated midpoint insertion, 400-step append/prepend chains crossing bucket rollovers, and a randomised board simulation). 302 vectors are frozen in `test/fixtures/golden.json`.
+Validated by running this implementation and a reference Go version over **5,205 generated cases** and **1,093 stateful simulation steps** (repeated midpoint insertion, 400-step append/prepend chains crossing bucket rollovers, and a randomised board simulation). 302 vectors are frozen in `test/fixtures/golden.json`.
 
 A property search over **280,000 random bound pairs** asserts `prev < result < next` on every call, and every result is re-checked against its bounds at runtime.
 

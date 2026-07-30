@@ -17,11 +17,15 @@ These look like cleanup opportunities. They are not. Each encodes a decision tha
 
 **TypeScript is pinned to `^5.9.3` on purpose.** TypeScript 7 is `latest` on npm and `tsc` works fine under it, but tsup generates `.d.ts` through `rollup-plugin-dts`, which calls the JS compiler API that the native TS 7 rewrite does not expose. Upgrading breaks `pnpm run build` with `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')`. TS 6 builds only with an `ignoreDeprecations` escape hatch. Leave it on 5.9.
 
-**`rankBetween` must never delegate to `rankAfter`.** They look redundant - both produce a rank after their first argument - but `rankAfter(x)` is a pure function of `x` alone and ignores whatever already follows it. Call it twice against the same anchor and it returns the same rank, colliding with the row you were inserting before. `rankBetween` re-reads both neighbours, so the second insert lands somewhere new. Halving the gap is the price of that guarantee, not a bug to optimise away.
+**`rankBetween` must not delegate to `rankAfter` when both bounds are closed.** They look redundant - both produce a rank after their first argument - but `rankAfter(x)` is a pure function of `x` alone and ignores whatever already follows it. Call it twice against the same anchor and it returns the same rank, colliding with the row you were inserting before. Between two real neighbours, halving the gap is the price of correctness, not a bug to optimise away.
+
+**Open bounds are the exception, and already delegate.** `rankBetween(null, x)` is `rankBefore(x)` and `rankBetween(x, null)` is `rankAfter(x)`: a `null` bound means nothing exists on that side, so there is no neighbour to collide with. `rankAfter` and `rankBefore` therefore call the internal `subdivide` helper in their fallback paths, never `rankBetween` - routing them back through it would recurse infinitely.
 
 **The ordering invariant has no exemptions.** `assertWithinBounds` in `src/lexorank.ts` checks every returned rank against its bounds on every call. Do not add special cases to it. An earlier version carried a `degenerate` flag to exempt identical bounds; removing that carve-out is what let the guard catch a real bug in the implementation earlier.
 
 **Trailing zeros are non-canonical and rejected on parse.** `:U` and `:U0` denote the same minor but are different strings, and _no_ valid rank sorts between them - the gap is provably empty. Permitting both creates neighbours that can never be separated. Do not relax `LEXORANK_REGEX` to accept them.
+
+**`MAX_MINOR_LENGTH` is a tripwire, not a capacity limit.** Ordinary usage never produces a minor deeper than a handful of digits, because `rankAfter`'s structural gap absorbs subdivision. A deep minor means the same two neighbours are being subdivided repeatedly. Raising the default to make an error go away is the wrong fix - the list needs rebalancing. It is configurable per call via `maxMinorLength`.
 
 **`MAX_BATCH_SIZE` is 60, derived not arbitrary.** A batch needs one whole character per item and the widest gap spans 61 steps, so 61 items never fit at any depth.
 

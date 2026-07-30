@@ -329,6 +329,70 @@ describe("maxMinorLength option", () => {
   });
 });
 
+describe("open bounds delegate to the step primitives", () => {
+  it("rankBetween(null, x) is exactly rankBefore(x)", () => {
+    for (const x of ["0|UUUUUU:", "1|ABCDEF:", "2|zzzzzz:", "0|000001:"]) {
+      expect(rankBetween(null, x)).toBe(rankBefore(x));
+    }
+  });
+
+  it("rankBetween(x, null) is exactly rankAfter(x)", () => {
+    for (const x of ["0|UUUUUU:", "1|ABCDEF:", "0|zzzzzz:", "2|zzzzzz:"]) {
+      expect(rankBetween(x, null)).toBe(rankAfter(x));
+    }
+  });
+
+  it("rankBetween(null, null) is firstRank()", () => {
+    expect(rankBetween(null, null)).toBe(firstRank());
+  });
+
+  it("keeps equidistantRanks(1, a, b) identical to rankBetween(a, b)", () => {
+    const pairs: [string | null, string | null][] = [
+      [null, null],
+      ["0|UUUUUU:", null],
+      [null, "0|UUUUUU:"],
+      ["0|000000:", "0|zzzzzz:"],
+    ];
+    for (const [a, b] of pairs) {
+      expect(equidistantRanks(1, a, b)[0]).toBe(rankBetween(a, b));
+    }
+  });
+
+  it("keeps batches ordered and inside an open bound", () => {
+    for (const [a, b] of [
+      [null, null],
+      ["0|UUUUUU:", null],
+      [null, "0|UUUUUU:"],
+    ] as [string | null, string | null][]) {
+      const out = equidistantRanks(5, a, b);
+      expect(out).toHaveLength(5);
+      expect([...out].sort()).toEqual(out);
+      if (a !== null) for (const r of out) expect(r > a).toBe(true);
+      if (b !== null) for (const r of out) expect(r < b).toBe(true);
+    }
+  });
+
+  it("buys orders of magnitude more runway than halving would", () => {
+    // Halving toward an absent bound exhausts the space in a few hundred calls.
+    // Stepping lasts tens of thousands. This is the whole point of delegating.
+    let current = firstRank();
+    for (let i = 0; i < 5000; i++) {
+      const next = rankBetween(null, current);
+      expect(next < current).toBe(true);
+      current = next;
+    }
+    expect(minorLength(current)).toBe(0);
+  });
+
+  it("does not recurse when a bucket boundary is reached", () => {
+    // rankAfter/rankBefore fall back to subdivision, which would re-enter
+    // rankBetween if they were not routed through the shared core.
+    expect(() => rankBetween("2|zzzzzz:", null)).not.toThrow();
+    expect(() => rankAfter("2|zzzzzz:")).not.toThrow();
+    expect(() => rankBetween(null, "0|000000:U")).not.toThrow();
+  });
+});
+
 describe("minorLength", () => {
   it("is zero for a rank with no minor", () => {
     expect(minorLength(firstRank())).toBe(0);
@@ -346,6 +410,8 @@ describe("minorLength", () => {
   });
 
   it("stays at zero through ordinary append-and-insert usage", () => {
+    // The structural gap left by rankAfter absorbs subdivision, so realistic
+    // boards never touch the minor. This is the claim the limit relies on.
     const board = [firstRank()];
     for (let i = 0; i < 40; i++) board.push(rankAfter(board[board.length - 1] as string));
 

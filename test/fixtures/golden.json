@@ -1,78 +1,50 @@
 [
   { "op": "firstRank", "args": [], "out": ["0|UUUUUU:"] },
-  { "op": "rank", "args": ["", ""], "out": ["0|UUUUUU:"] },
   { "op": "prepend", "args": ["0|000000:"], "out": null },
   { "op": "append", "args": ["0|000000:"], "out": ["0|004C92:"] },
   { "op": "parse", "args": ["0|000000:"], "out": ["0|000000|:"] },
-  { "op": "rank", "args": ["0|000000:", ""], "out": ["0|UUUUUU:"] },
   { "op": "prepend", "args": ["0|zzzzzz:"], "out": ["0|zzvnqx:"] },
   { "op": "append", "args": ["0|zzzzzz:"], "out": ["1|UUUUUU:"] },
   { "op": "parse", "args": ["0|zzzzzz:"], "out": ["0|zzzzzz|:"] },
-  { "op": "rank", "args": ["0|zzzzzz:", ""], "out": ["0|zzzzzz:U"] },
-  { "op": "rank", "args": ["", "0|zzzzzz:"], "out": ["0|UUUUUU:"] },
   { "op": "prepend", "args": ["0|UUUUUU:"], "out": ["0|UUQILS:"] },
   { "op": "append", "args": ["0|UUUUUU:"], "out": ["0|UUYgdW:"] },
   { "op": "parse", "args": ["0|UUUUUU:"], "out": ["0|UUUUUU|:"] },
-  { "op": "rank", "args": ["0|UUUUUU:", ""], "out": ["0|jUUUUU:"] },
-  { "op": "rank", "args": ["", "0|UUUUUU:"], "out": ["0|FUUUUU:"] },
   { "op": "prepend", "args": ["1|000000:"], "out": ["0|UUUUUU:"] },
   { "op": "append", "args": ["1|000000:"], "out": ["1|004C92:"] },
   { "op": "parse", "args": ["1|000000:"], "out": ["1|000000|:"] },
-  { "op": "rank", "args": ["1|000000:", ""], "out": ["1|UUUUUU:"] },
   { "op": "prepend", "args": ["1|UUUUUU:"], "out": ["1|UUQILS:"] },
   { "op": "append", "args": ["1|UUUUUU:"], "out": ["1|UUYgdW:"] },
   { "op": "parse", "args": ["1|UUUUUU:"], "out": ["1|UUUUUU|:"] },
-  { "op": "rank", "args": ["1|UUUUUU:", ""], "out": ["1|jUUUUU:"] },
-  { "op": "rank", "args": ["", "1|UUUUUU:"], "out": ["1|FUUUUU:"] },
   { "op": "prepend", "args": ["1|zzzzzz:"], "out": ["1|zzvnqx:"] },
   { "op": "append", "args": ["1|zzzzzz:"], "out": ["2|UUUUUU:"] },
   { "op": "parse", "args": ["1|zzzzzz:"], "out": ["1|zzzzzz|:"] },
-  { "op": "rank", "args": ["1|zzzzzz:", ""], "out": ["1|zzzzzz:U"] },
-  { "op": "rank", "args": ["", "1|zzzzzz:"], "out": ["1|UUUUUU:"] },
   { "op": "prepend", "args": ["2|000000:"], "out": ["1|UUUUUU:"] },
   { "op": "append", "args": ["2|000000:"], "out": ["2|004C92:"] },
   { "op": "parse", "args": ["2|000000:"], "out": ["2|000000|:"] },
-  { "op": "rank", "args": ["2|000000:", ""], "out": ["2|UUUUUU:"] },
   { "op": "prepend", "args": ["2|UUUUUU:"], "out": ["2|UUQILS:"] },
   { "op": "append", "args": ["2|UUUUUU:"], "out": ["2|UUYgdW:"] },
   { "op": "parse", "args": ["2|UUUUUU:"], "out": ["2|UUUUUU|:"] },
-  { "op": "rank", "args": ["2|UUUUUU:", ""], "out": ["2|jUUUUU:"] },
-  { "op": "rank", "args": ["", "2|UUUUUU:"], "out": ["2|FUUUUU:"] },
   { "op": "prepend", "args": ["2|zzzzzz:"], "out": ["2|zzvnqx:"] },
   { "op": "append", "args": ["2|zzzzzz:"], "out": ["2|zzzzzz:U"] },
   { "op": "parse", "args": ["2|zzzzzz:"], "out": ["2|zzzzzz|:"] },
-  { "op": "rank", "args": ["2|zzzzzz:", ""], "out": ["2|zzzzzz:U"] },
-  { "op": "rank", "args": ["", "2|zzzzzz:"], "out": ["2|UUUUUU:"] },
   { "op": "prepend", "args": ["0|000001:"], "out": ["0|000000:U"] },
   { "op": "append", "args": ["0|000001:"], "out": ["0|004C93:"] },
   { "op": "parse", "args": ["0|000001:"], "out": ["0|000001|:"] },
-  { "op": "rank", "args": ["0|000001:", ""], "out": ["0|UUUUUU:"] },
-  { "op": "rank", "args": ["", "0|000001:"], "out": ["0|000000:U"] },
   { "op": "prepend", "args": ["0|000000:U"], "out": ["0|000000:F"] },
   { "op": "append", "args": ["0|000000:U"], "out": ["0|004C92:"] },
   { "op": "parse", "args": ["0|000000:U"], "out": ["0|000000|:U"] },
-  { "op": "rank", "args": ["0|000000:U", ""], "out": ["0|UUUUUU:"] },
-  { "op": "rank", "args": ["", "0|000000:U"], "out": ["0|000000:F"] },
   { "op": "prepend", "args": ["0|zzzzzy:"], "out": ["0|zzvnqw:"] },
   { "op": "append", "args": ["0|zzzzzy:"], "out": ["1|UUUUUU:"] },
   { "op": "parse", "args": ["0|zzzzzy:"], "out": ["0|zzzzzy|:"] },
-  { "op": "rank", "args": ["0|zzzzzy:", ""], "out": ["0|zzzzzy:U"] },
-  { "op": "rank", "args": ["", "0|zzzzzy:"], "out": ["0|UUUUUU:"] },
   { "op": "prepend", "args": ["0|00000z:"], "out": ["0|00000U:"] },
   { "op": "append", "args": ["0|00000z:"], "out": ["0|004CA1:"] },
   { "op": "parse", "args": ["0|00000z:"], "out": ["0|00000z|:"] },
-  { "op": "rank", "args": ["0|00000z:", ""], "out": ["0|UUUUUU:"] },
-  { "op": "rank", "args": ["", "0|00000z:"], "out": ["0|00000U:"] },
   { "op": "prepend", "args": ["0|100000:"], "out": ["0|0zvnqy:"] },
   { "op": "append", "args": ["0|100000:"], "out": ["0|104C92:"] },
   { "op": "parse", "args": ["0|100000:"], "out": ["0|100000|:"] },
-  { "op": "rank", "args": ["0|100000:", ""], "out": ["0|VUUUUU:"] },
-  { "op": "rank", "args": ["", "0|100000:"], "out": ["0|0UUUUU:"] },
   { "op": "prepend", "args": ["0|0zzzzz:"], "out": ["0|0zvnqx:"] },
   { "op": "append", "args": ["0|0zzzzz:"], "out": ["0|104C91:"] },
   { "op": "parse", "args": ["0|0zzzzz:"], "out": ["0|0zzzzz|:"] },
-  { "op": "rank", "args": ["0|0zzzzz:", ""], "out": ["0|UUUUUU:"] },
-  { "op": "rank", "args": ["", "0|0zzzzz:"], "out": ["0|0UUUUU:"] },
   { "op": "rank", "args": ["0|000000:", "0|000001:"], "out": ["0|000000:U"] },
   { "op": "equidistant", "args": ["1", "0|000000:", "0|000001:"], "out": ["0|000000:U"] },
   {
@@ -304,10 +276,8 @@
       "1|vUUUUU:"
     ]
   },
-  { "op": "equidistant", "args": ["1", "", ""], "out": ["0|UUUUUU:"] },
   { "op": "equidistant", "args": ["1", "0|000000:", "0|zzzzzz:"], "out": ["0|UUUUUU:"] },
   { "op": "equidistant", "args": ["1", "0|AAAAAA:", "0|zzzzzz:"], "out": ["0|ZUUUUU:"] },
-  { "op": "equidistant", "args": ["2", "", ""], "out": ["0|KUUUUU:", "0|eUUUUU:"] },
   {
     "op": "equidistant",
     "args": ["2", "0|000000:", "0|zzzzzz:"],
@@ -318,7 +288,6 @@
     "args": ["2", "0|AAAAAA:", "0|zzzzzz:"],
     "out": ["0|RUUUUU:", "0|iUUUUU:"]
   },
-  { "op": "equidistant", "args": ["3", "", ""], "out": ["0|FUUUUU:", "0|UUUUUU:", "0|jUUUUU:"] },
   {
     "op": "equidistant",
     "args": ["3", "0|000000:", "0|zzzzzz:"],
@@ -328,11 +297,6 @@
     "op": "equidistant",
     "args": ["3", "0|AAAAAA:", "0|zzzzzz:"],
     "out": ["0|MUUUUU:", "0|YUUUUU:", "0|kUUUUU:"]
-  },
-  {
-    "op": "equidistant",
-    "args": ["4", "", ""],
-    "out": ["0|CUUUUU:", "0|OUUUUU:", "0|aUUUUU:", "0|mUUUUU:"]
   },
   {
     "op": "equidistant",
@@ -346,11 +310,6 @@
   },
   {
     "op": "equidistant",
-    "args": ["5", "", ""],
-    "out": ["0|AUUUUU:", "0|KUUUUU:", "0|UUUUUU:", "0|eUUUUU:", "0|oUUUUU:"]
-  },
-  {
-    "op": "equidistant",
     "args": ["5", "0|000000:", "0|zzzzzz:"],
     "out": ["0|AUUUUU:", "0|KUUUUU:", "0|UUUUUU:", "0|eUUUUU:", "0|oUUUUU:"]
   },
@@ -358,11 +317,6 @@
     "op": "equidistant",
     "args": ["5", "0|AAAAAA:", "0|zzzzzz:"],
     "out": ["0|IUUUUU:", "0|QUUUUU:", "0|YUUUUU:", "0|gUUUUU:", "0|oUUUUU:"]
-  },
-  {
-    "op": "equidistant",
-    "args": ["6", "", ""],
-    "out": ["0|8UUUUU:", "0|GUUUUU:", "0|OUUUUU:", "0|WUUUUU:", "0|eUUUUU:", "0|mUUUUU:"]
   },
   {
     "op": "equidistant",
@@ -376,99 +330,23 @@
   },
   {
     "op": "equidistant",
-    "args": ["7", "", ""],
-    "out": [
-      "0|7UUUUU:",
-      "0|EUUUUU:",
-      "0|LUUUUU:",
-      "0|SUUUUU:",
-      "0|ZUUUUU:",
-      "0|gUUUUU:",
-      "0|nUUUUU:"
-    ]
-  },
-  {
-    "op": "equidistant",
     "args": ["7", "0|000000:", "0|zzzzzz:"],
-    "out": [
-      "0|7UUUUU:",
-      "0|EUUUUU:",
-      "0|LUUUUU:",
-      "0|SUUUUU:",
-      "0|ZUUUUU:",
-      "0|gUUUUU:",
-      "0|nUUUUU:"
-    ]
+    "out": ["0|7UUUUU:", "0|EUUUUU:", "0|LUUUUU:", "0|SUUUUU:", "0|ZUUUUU:", "0|gUUUUU:", "0|nUUUUU:"]
   },
   {
     "op": "equidistant",
     "args": ["7", "0|AAAAAA:", "0|zzzzzz:"],
-    "out": [
-      "0|GUUUUU:",
-      "0|MUUUUU:",
-      "0|SUUUUU:",
-      "0|YUUUUU:",
-      "0|eUUUUU:",
-      "0|kUUUUU:",
-      "0|qUUUUU:"
-    ]
-  },
-  {
-    "op": "equidistant",
-    "args": ["8", "", ""],
-    "out": [
-      "0|6UUUUU:",
-      "0|CUUUUU:",
-      "0|IUUUUU:",
-      "0|OUUUUU:",
-      "0|UUUUUU:",
-      "0|aUUUUU:",
-      "0|gUUUUU:",
-      "0|mUUUUU:"
-    ]
+    "out": ["0|GUUUUU:", "0|MUUUUU:", "0|SUUUUU:", "0|YUUUUU:", "0|eUUUUU:", "0|kUUUUU:", "0|qUUUUU:"]
   },
   {
     "op": "equidistant",
     "args": ["8", "0|000000:", "0|zzzzzz:"],
-    "out": [
-      "0|6UUUUU:",
-      "0|CUUUUU:",
-      "0|IUUUUU:",
-      "0|OUUUUU:",
-      "0|UUUUUU:",
-      "0|aUUUUU:",
-      "0|gUUUUU:",
-      "0|mUUUUU:"
-    ]
+    "out": ["0|6UUUUU:", "0|CUUUUU:", "0|IUUUUU:", "0|OUUUUU:", "0|UUUUUU:", "0|aUUUUU:", "0|gUUUUU:", "0|mUUUUU:"]
   },
   {
     "op": "equidistant",
     "args": ["8", "0|AAAAAA:", "0|zzzzzz:"],
-    "out": [
-      "0|FUUUUU:",
-      "0|KUUUUU:",
-      "0|PUUUUU:",
-      "0|UUUUUU:",
-      "0|ZUUUUU:",
-      "0|eUUUUU:",
-      "0|jUUUUU:",
-      "0|oUUUUU:"
-    ]
-  },
-  {
-    "op": "equidistant",
-    "args": ["9", "", ""],
-    "out": [
-      "0|6UUUUU:",
-      "0|CUUUUU:",
-      "0|IUUUUU:",
-      "0|OUUUUU:",
-      "0|UUUUUU:",
-      "0|aUUUUU:",
-      "0|gUUUUU:",
-      "0|mUUUUU:",
-      "0|sUUUUU:"
-    ]
+    "out": ["0|FUUUUU:", "0|KUUUUU:", "0|PUUUUU:", "0|UUUUUU:", "0|ZUUUUU:", "0|eUUUUU:", "0|jUUUUU:", "0|oUUUUU:"]
   },
   {
     "op": "equidistant",
@@ -483,6 +361,161 @@
       "0|gUUUUU:",
       "0|mUUUUU:",
       "0|sUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["9", "0|AAAAAA:", "0|zzzzzz:"],
+    "out": [
+      "0|FUUUUU:",
+      "0|KUUUUU:",
+      "0|PUUUUU:",
+      "0|UUUUUU:",
+      "0|ZUUUUU:",
+      "0|eUUUUU:",
+      "0|jUUUUU:",
+      "0|oUUUUU:",
+      "0|tUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["10", "0|000000:", "0|zzzzzz:"],
+    "out": [
+      "0|5UUUUU:",
+      "0|AUUUUU:",
+      "0|FUUUUU:",
+      "0|KUUUUU:",
+      "0|PUUUUU:",
+      "0|UUUUUU:",
+      "0|ZUUUUU:",
+      "0|eUUUUU:",
+      "0|jUUUUU:",
+      "0|oUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["10", "0|AAAAAA:", "0|zzzzzz:"],
+    "out": [
+      "0|EUUUUU:",
+      "0|IUUUUU:",
+      "0|MUUUUU:",
+      "0|QUUUUU:",
+      "0|UUUUUU:",
+      "0|YUUUUU:",
+      "0|cUUUUU:",
+      "0|gUUUUU:",
+      "0|kUUUUU:",
+      "0|oUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["11", "0|000000:", "0|zzzzzz:"],
+    "out": [
+      "0|5UUUUU:",
+      "0|AUUUUU:",
+      "0|FUUUUU:",
+      "0|KUUUUU:",
+      "0|PUUUUU:",
+      "0|UUUUUU:",
+      "0|ZUUUUU:",
+      "0|eUUUUU:",
+      "0|jUUUUU:",
+      "0|oUUUUU:",
+      "0|tUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["11", "0|AAAAAA:", "0|zzzzzz:"],
+    "out": [
+      "0|EUUUUU:",
+      "0|IUUUUU:",
+      "0|MUUUUU:",
+      "0|QUUUUU:",
+      "0|UUUUUU:",
+      "0|YUUUUU:",
+      "0|cUUUUU:",
+      "0|gUUUUU:",
+      "0|kUUUUU:",
+      "0|oUUUUU:",
+      "0|sUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["12", "0|000000:", "0|zzzzzz:"],
+    "out": [
+      "0|4UUUUU:",
+      "0|8UUUUU:",
+      "0|CUUUUU:",
+      "0|GUUUUU:",
+      "0|KUUUUU:",
+      "0|OUUUUU:",
+      "0|SUUUUU:",
+      "0|WUUUUU:",
+      "0|aUUUUU:",
+      "0|eUUUUU:",
+      "0|iUUUUU:",
+      "0|mUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["12", "0|AAAAAA:", "0|zzzzzz:"],
+    "out": [
+      "0|DUUUUU:",
+      "0|GUUUUU:",
+      "0|JUUUUU:",
+      "0|MUUUUU:",
+      "0|PUUUUU:",
+      "0|SUUUUU:",
+      "0|VUUUUU:",
+      "0|YUUUUU:",
+      "0|bUUUUU:",
+      "0|eUUUUU:",
+      "0|hUUUUU:",
+      "0|kUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["13", "0|000000:", "0|zzzzzz:"],
+    "out": [
+      "0|4UUUUU:",
+      "0|8UUUUU:",
+      "0|CUUUUU:",
+      "0|GUUUUU:",
+      "0|KUUUUU:",
+      "0|OUUUUU:",
+      "0|SUUUUU:",
+      "0|WUUUUU:",
+      "0|aUUUUU:",
+      "0|eUUUUU:",
+      "0|iUUUUU:",
+      "0|mUUUUU:",
+      "0|qUUUUU:"
+    ]
+  },
+  {
+    "op": "equidistant",
+    "args": ["13", "0|AAAAAA:", "0|zzzzzz:"],
+    "out": [
+      "0|DUUUUU:",
+      "0|GUUUUU:",
+      "0|JUUUUU:",
+      "0|MUUUUU:",
+      "0|PUUUUU:",
+      "0|SUUUUU:",
+      "0|VUUUUU:",
+      "0|YUUUUU:",
+      "0|bUUUUU:",
+      "0|eUUUUU:",
+      "0|hUUUUU:",
+      "0|kUUUUU:",
+      "0|nUUUUU:"
     ]
   },
   { "op": "rank", "args": ["0|mFGHcH:Tz", "1|DOkD0q:VXKe"], "out": ["0|sUUUUU:"] },
@@ -509,6 +542,34 @@
   { "op": "rank", "args": ["0|Ne1FTk:5Dmyo", "1|VqEOQX:ADnDQ"], "out": ["0|gUUUUU:"] },
   { "op": "rank", "args": ["1|UyJU5a:", "1|VvNbdG:J"], "out": ["1|VSUUUU:"] },
   { "op": "rank", "args": ["1|sdhfyP:", "2|nBQRFC:msl9"], "out": ["1|vUUUUU:"] },
+  { "op": "rank", "args": ["0|6AsWkm:ePwY", "0|SfHCKx:wCMt"], "out": ["0|HUUUUU:"] },
+  { "op": "rank", "args": ["0|Iewv1m:7cW3", "0|srk1wf:m"], "out": ["0|aUUUUU:"] },
+  { "op": "rank", "args": ["2|Mf1pvv:7uw4", "2|ljEX1d:Z"], "out": ["2|YUUUUU:"] },
+  { "op": "rank", "args": ["1|0yPILS:RnMY", "2|G8Jg5O:"], "out": ["1|UUUUUU:"] },
+  { "op": "rank", "args": ["0|B0gUat:GUgCK", "1|hqVuYo:Mub6"], "out": ["0|aUUUUU:"] },
+  { "op": "rank", "args": ["1|Lrcq8u:i", "2|W7btuX:pOV"], "out": ["1|fUUUUU:"] },
+  { "op": "rank", "args": ["0|1Y06Pi:ZynP6", "2|pvXXYE:Aii"], "out": ["0|VUUUUU:"] },
+  { "op": "rank", "args": ["1|7TzSXI:jWG8v", "2|q9BqcR:vi"], "out": ["1|YUUUUU:"] },
+  { "op": "rank", "args": ["0|NqTOVJ:Fw", "1|r4CLmq:D"], "out": ["0|gUUUUU:"] },
+  { "op": "rank", "args": ["0|Fz2fdv:N8Ki", "2|0eDk6F:u0j3S"], "out": ["0|cUUUUU:"] },
+  { "op": "rank", "args": ["0|SxtzOU:uoCj", "0|pDy78c:"], "out": ["0|dUUUUU:"] },
+  { "op": "rank", "args": ["0|lhMCmw:", "2|ElwLv8:s2"], "out": ["0|sUUUUU:"] },
+  { "op": "rank", "args": ["0|jydfOR:f", "1|eExPAk:2Pg"], "out": ["0|rUUUUU:"] },
+  { "op": "rank", "args": ["1|Wo5Vd0:44", "2|gZWisb:IDC"], "out": ["1|kUUUUU:"] },
+  { "op": "rank", "args": ["2|Pdhrr2:QPpyu", "2|ez2ZLw:Uw"], "out": ["2|WUUUUU:"] },
+  { "op": "rank", "args": ["0|pHRPxu:5vPP", "1|jjZ8jD:s"], "out": ["0|uUUUUU:"] },
+  { "op": "rank", "args": ["2|Fb9G12:llp", "2|Hlzdyf:OrJN"], "out": ["2|GUUUUU:"] },
+  { "op": "rank", "args": ["0|mRuzzK:W7HPE", "1|3oKxe2:beF"], "out": ["0|sUUUUU:"] },
+  { "op": "rank", "args": ["1|XCRQUM:XXoy", "1|j9dcal:G6"], "out": ["1|dUUUUU:"] },
+  { "op": "rank", "args": ["0|OmDglg:K", "1|cDprHe:"], "out": ["0|gUUUUU:"] },
+  { "op": "rank", "args": ["1|JQ4UAh:SLvv", "1|ZR8o33:Rj"], "out": ["1|RUUUUU:"] },
+  { "op": "rank", "args": ["0|nwKOlZ:yoo", "2|xGAW4k:SNa"], "out": ["0|tUUUUU:"] },
+  { "op": "rank", "args": ["1|YlMolg:YTX", "2|KHTY72:I"], "out": ["1|lUUUUU:"] },
+  { "op": "rank", "args": ["2|eadiEm:sngM", "2|qr6duA:jISZ"], "out": ["2|kUUUUU:"] },
+  { "op": "rank", "args": ["0|gQoWTC:f", "1|CTndrM:8f"], "out": ["0|pUUUUU:"] },
+  { "op": "rank", "args": ["0|tJHeCS:K", "2|wTJDQ4:"], "out": ["0|wUUUUU:"] },
+  { "op": "rank", "args": ["0|L6WcqE:oCh1", "0|a5d2yO:V2Q"], "out": ["0|SUUUUU:"] },
+  { "op": "rank", "args": ["1|HTDuoG:", "2|ktEFYq:xshS"], "out": ["1|dUUUUU:"] },
   { "op": "prepend", "args": ["2|fv1a4G:fCkldPimMiYH6HFx73AmYkpZ"], "out": ["2|fuxNvE:"] },
   { "op": "append", "args": ["2|fv1a4G:fCkldPimMiYH6HFx73AmYkpZ"], "out": ["2|fv5mDI:"] },
   { "op": "prepend", "args": ["0|RDL4ZR:YIY"], "out": ["0|RDGsQP:"] },

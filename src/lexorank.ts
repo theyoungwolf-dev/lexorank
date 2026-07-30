@@ -142,6 +142,23 @@ function assertWithinBounds(results: string[], prev: string, next: string): void
 }
 
 /**
+ * Validates the bounds, subdivides, and verifies the results landed inside them.
+ *
+ * Every entry point funnels through here. `rankAfter` and `rankBefore` call it
+ * directly rather than going via {@link rankBetween}, which would recurse now
+ * that open bounds delegate back to them.
+ */
+function subdivide(low: string, high: string, count: number, limit: number): string[] {
+  const [prevPosition, nextPosition] = parseBounds(low, high);
+
+  const results = computeRanks(count, prevPosition, nextPosition, limit).map((position) => position.toString());
+
+  assertWithinBounds(results, low, high);
+
+  return results;
+}
+
+/**
  * Returns the number of Base-62 digits in a rank's minor component.
  *
  * Zero means the rank sits purely in the fixed-width integer space, which is
@@ -194,13 +211,26 @@ export function firstRank(): string {
  */
 export function rankBetween(prev: RankInput, next: RankInput, options?: RankOptions): string {
   const limit = resolveLimit(options);
-  const [low, high] = parseBounds(prev, next);
+  const low = normalise(prev);
+  const high = normalise(next);
 
-  const result = (computeRanks(1, low, high, limit)[0] as Position).toString();
+  // An open bound has no neighbour on that side to collide with, so the
+  // fixed-step primitive is both safe and far more economical: halving toward an
+  // absent boundary exhausts the space in a few hundred calls, while stepping
+  // lasts for tens of thousands.
+  if (low === "" && high === "") {
+    return firstRank();
+  }
 
-  assertWithinBounds([result], normalise(prev), normalise(next));
+  if (low === "") {
+    return rankBefore(high, options);
+  }
 
-  return result;
+  if (high === "") {
+    return rankAfter(low, options);
+  }
+
+  return subdivide(low, high, 1, limit)[0] as string;
 }
 
 /**
@@ -219,13 +249,47 @@ export function equidistantRanks(count: number, prev: RankInput, next: RankInput
   }
 
   const limit = resolveLimit(options);
-  const [low, high] = parseBounds(prev, next);
+  const low = normalise(prev);
+  const high = normalise(next);
 
-  const results = computeRanks(count, low, high, limit).map((position) => position.toString());
+  // Mirrors rankBetween: an open bound steps, a closed pair subdivides. Keeping
+  // these aligned is what makes equidistantRanks(1, a, b) === rankBetween(a, b).
+  if (low === "" && high === "") {
+    const results = [firstRank()];
 
-  assertWithinBounds(results, normalise(prev), normalise(next));
+    while (results.length < count) {
+      results.push(rankAfter(results[results.length - 1] as string, options));
+    }
 
-  return results;
+    return results;
+  }
+
+  if (high === "") {
+    const results: string[] = [];
+    let current = low;
+
+    for (let i = 0; i < count; i++) {
+      current = rankAfter(current, options);
+      results.push(current);
+    }
+
+    return results;
+  }
+
+  if (low === "") {
+    const results: string[] = [];
+    let current = high;
+
+    for (let i = 0; i < count; i++) {
+      current = rankBefore(current, options);
+      results.push(current);
+    }
+
+    // Generated downward; callers expect ascending order.
+    return results.reverse();
+  }
+
+  return subdivide(low, high, count, limit);
 }
 
 /**
@@ -247,20 +311,26 @@ export function rankAfter(to: RankInput, options?: RankOptions): string {
     return firstRank();
   }
 
+  const limit = resolveLimit(options);
   const position = parseRank(text) as Position;
   const value = decodeBase62(position.major) + STEP_SIZE;
+
+  let result: string;
 
   if (value > MAX_MAJOR_VALUE) {
     // Integer space exhausted. Move up a bucket if one is free, otherwise fall
     // back to subdividing the minor space.
-    if (position.bucket >= MAX_BUCKET) {
-      return rankBetween(text, null, options);
-    }
-
-    return new Position(position.bucket + 1, MID_MAJOR, ":").toString();
+    result =
+      position.bucket >= MAX_BUCKET
+        ? (subdivide(text, "", 1, limit)[0] as string)
+        : new Position(position.bucket + 1, MID_MAJOR, ":").toString();
+  } else {
+    result = new Position(position.bucket, toMajor(value), ":").toString();
   }
 
-  return new Position(position.bucket, toMajor(value), ":").toString();
+  assertWithinBounds([result], text, "");
+
+  return result;
 }
 
 /**
@@ -281,8 +351,11 @@ export function rankBefore(to: RankInput, options?: RankOptions): string {
     return firstRank();
   }
 
+  const limit = resolveLimit(options);
   const position = parseRank(text) as Position;
   const value = decodeBase62(position.major) - STEP_SIZE;
+
+  let result: string;
 
   if (value < 0) {
     if (position.bucket <= 0) {
@@ -292,11 +365,16 @@ export function rankBefore(to: RankInput, options?: RankOptions): string {
         );
       }
 
-      return rankBetween(null, text, options);
+      // Bottom bucket, below the step size: subdivide what is left.
+      result = subdivide("", text, 1, limit)[0] as string;
+    } else {
+      result = new Position(position.bucket - 1, MID_MAJOR, ":").toString();
     }
-
-    return new Position(position.bucket - 1, MID_MAJOR, ":").toString();
+  } else {
+    result = new Position(position.bucket, toMajor(value), ":").toString();
   }
 
-  return new Position(position.bucket, toMajor(value), ":").toString();
+  assertWithinBounds([result], "", text);
+
+  return result;
 }
