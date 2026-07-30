@@ -22,7 +22,7 @@ if (!existsSync(distPath)) {
 }
 
 const lib = await import(pathToFileURL(distPath).href);
-const { rankBetween, rankAfter, rankBefore, firstRank, equidistantRanks, isValidRank } = lib;
+const { rankBetween, rankAfter, rankBefore, firstRank, ranksBetween, isValidRank } = lib;
 
 const ITERATIONS = Number.parseInt(process.argv[2] ?? "200000", 10);
 const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -159,7 +159,7 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     const count = 1 + Math.floor(rnd() * 8);
     let batch;
     try {
-      batch = equidistantRanks(count, low, high);
+      batch = ranksBetween(count, low, high);
     } catch (error) {
       if (isInvariantFailure(error)) ok = false;
       continue;
@@ -169,7 +169,7 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     if (JSON.stringify([...batch].sort()) !== JSON.stringify(batch)) ok = false;
     for (const r of batch) if (!(low < r && r < high)) ok = false;
   }
-  report("equidistantRanks ascending and within bounds", ok);
+  report("ranksBetween ascending and within bounds", ok);
 }
 
 // 5. A drag-and-drop board stays sorted under mixed operations.

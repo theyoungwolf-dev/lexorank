@@ -49,24 +49,26 @@ The trade-off is space. Between two closed bounds `rankBetween` halves the remai
 | `rankBetween(null, null)` | `firstRank()`       |
 | `rankBetween(a, b)`       | midpoint, unchanged |
 
-This matters more than it looks. Repeatedly moving items to the top of a column with `rankBetween(null, first)` would otherwise halve the space below each time and exhaust it after about **669** operations - a reachable number. Delegating turns that into roughly **28,590**. `equidistantRanks` follows the same rule, so `equidistantRanks(1, a, b)` always equals `rankBetween(a, b)`.
+This matters more than it looks. Repeatedly moving items to the top of a column with `rankBetween(null, first)` would otherwise halve the space below each time and exhaust it after about **669** operations - a reachable number. Delegating turns that into roughly **28,590**. `ranksBetween` follows the same rule, so `ranksBetween(1, a, b)` always equals `rankBetween(a, b)`.
+
+> `ranksBetween` spreads its results across the gap but does not guarantee exactly equal spacing - the interval is divided at one character position and the remainder falls into the last gap. Every gap is billions of units wide either way, so this has no practical effect; it is simply not a promise the function makes.
 
 ## API
 
-| Export                                | Description                                           |
-| ------------------------------------- | ----------------------------------------------------- |
-| `firstRank()`                         | The initial rank for an empty list.                   |
-| `rankBetween(prev, next)`             | A rank sorting strictly between two bounds.           |
-| `rankAfter(to)`                       | Next rank above `to`, fixed step. Append only.        |
-| `rankBefore(to)`                      | Next rank below `to`, fixed step. Prepend only.       |
-| `equidistantRanks(count, prev, next)` | `count` evenly spaced ranks (1-`MAX_BATCH_SIZE`).     |
-| `compareRanks(a, b)`                  | Comparator for `Array.prototype.sort`.                |
-| `minorLength(rank)`                   | Digits in the minor component. A list-health signal.  |
-| `parseRank(value)`                    | Parse into a `Position`, or `null` for an open bound. |
-| `isValidRank(value)`                  | True for exactly the values this API accepts.         |
-| `generateEntropy()`                   | Random 3-character Base-62 string.                    |
-| `Position`                            | Immutable `{ bucket, major, minor }` value object.    |
-| `MAX_minor_LENGTH`                    | Default minor ceiling (128).                          |
+| Export                            | Description                                            |
+| --------------------------------- | ------------------------------------------------------ |
+| `firstRank()`                     | The initial rank for an empty list.                    |
+| `rankBetween(prev, next)`         | A rank sorting strictly between two bounds.            |
+| `rankAfter(to)`                   | Next rank above `to`, fixed step. Append only.         |
+| `rankBefore(to)`                  | Next rank below `to`, fixed step. Prepend only.        |
+| `ranksBetween(count, prev, next)` | `count` ranks between two bounds (1-`MAX_BATCH_SIZE`). |
+| `compareRanks(a, b)`              | Comparator for `Array.prototype.sort`.                 |
+| `minorLength(rank)`               | Digits in the minor component. A list-health signal.   |
+| `parseRank(value)`                | Parse into a `Position`, or `null` for an open bound.  |
+| `isValidRank(value)`              | True for exactly the values this API accepts.          |
+| `generateEntropy()`               | Random 3-character Base-62 string.                     |
+| `Position`                        | Immutable `{ bucket, major, minor }` value object.     |
+| `MAX_MINOR_LENGTH`                | Default minor ceiling (128).                           |
 
 Every bound accepts `string | null | undefined`; `null`, `undefined` and `""` all mean "no bound on this side".
 
@@ -144,7 +146,7 @@ A minor must not end in `0`. `:U` and `:U0` denote the same value but are differ
 
 ### Duplicate bounds
 
-If two rows share a rank there is no order between them, so nothing can sit between them either. Both `rankBetween` and `equidistantRanks` reject this with `DuplicateRankError` rather than returning a value that would sort _after_ both bounds - a silent misplacement in the UI, with the underlying data problem left in place.
+If two rows share a rank there is no order between them, so nothing can sit between them either. Both `rankBetween` and `ranksBetween` reject this with `DuplicateRankError` rather than returning a value that would sort _after_ both bounds - a silent misplacement in the UI, with the underlying data problem left in place.
 
 Duplicate ranks are a data-integrity issue, not a transient condition. Catch the error, rebalance the affected list, and retry:
 

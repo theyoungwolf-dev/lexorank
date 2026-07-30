@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
-  equidistantRanks,
   firstRank,
   parseRank,
   rankAfter,
   rankBefore,
   rankBetween,
+  ranksBetween,
 } from "../src/index.js";
 import golden from "./fixtures/golden.json" with { type: "json" };
 
 /**
- * Golden vectors captured from the correct implementation.
+ * Golden vectors captured from the initial implementation.
  */
 interface GoldenCase {
   op: string;
@@ -25,7 +25,7 @@ function invoke(op: string, args: string[]): string[] {
     case "rank":
       return [rankBetween(args[0] as string, args[1] as string)];
     case "equidistant":
-      return equidistantRanks(
+      return ranksBetween(
         Number.parseInt(args[0] as string, 10),
         args[1] as string,
         args[2] as string,

@@ -18,7 +18,6 @@ export { MAX_BATCH_SIZE, MAX_BUCKET, MAX_MINOR_LENGTH } from "./internal/constan
 export { generateEntropy } from "./internal/entropy.js";
 export {
   compareRanks,
-  equidistantRanks,
   firstRank,
   minorLength,
   parseRank,
@@ -27,6 +26,7 @@ export {
   rankAfter,
   rankBefore,
   rankBetween,
+  ranksBetween,
 } from "./lexorank.js";
 export { Position } from "./position.js";
 export { hasTrailingZero, isValidRank, LEXORANK_REGEX } from "./validator.js";

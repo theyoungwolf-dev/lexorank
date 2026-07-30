@@ -234,16 +234,23 @@ export function rankBetween(prev: RankInput, next: RankInput, options?: RankOpti
 }
 
 /**
- * Returns `count` ranks spread evenly between `prev` and `next`.
+ * Returns `count` ranks in ascending order, every one strictly between `prev`
+ * and `next`. The plural of {@link rankBetween}, and it applies the same bound
+ * rules: descending and identical bounds are both rejected, and an open bound
+ * steps rather than subdividing, so `ranksBetween(1, a, b)` always equals
+ * `rankBetween(a, b)`.
  *
- * Applies the same bound rules as {@link rankBetween}: the interval must be
- * non-empty, so descending and identical bounds are both rejected.
+ * The results are spread across the gap, but the spacing is not exactly uniform:
+ * the interval is divided at a single character position and the remainder lands
+ * in the final gap, which for larger counts can be most of a character wider
+ * than the others. Every gap is still astronomically large in rank terms, so
+ * this affects nothing in practice - but do not rely on precise equality.
  *
  * @throws {BatchSizeError} if `count` is not an integer in 1..{@link MAX_BATCH_SIZE}.
  * @throws {RankOrderError} if `prev` sorts after `next`.
  * @throws {DuplicateRankError} if both bounds are the same rank.
  */
-export function equidistantRanks(count: number, prev: RankInput, next: RankInput, options?: RankOptions): string[] {
+export function ranksBetween(count: number, prev: RankInput, next: RankInput, options?: RankOptions): string[] {
   if (!Number.isInteger(count) || count < 1 || count > MAX_BATCH_SIZE) {
     throw new BatchSizeError(count, MAX_BATCH_SIZE);
   }
@@ -253,7 +260,7 @@ export function equidistantRanks(count: number, prev: RankInput, next: RankInput
   const high = normalise(next);
 
   // Mirrors rankBetween: an open bound steps, a closed pair subdivides. Keeping
-  // these aligned is what makes equidistantRanks(1, a, b) === rankBetween(a, b).
+  // these aligned is what makes ranksBetween(1, a, b) === rankBetween(a, b).
   if (low === "" && high === "") {
     const results = [firstRank()];
 

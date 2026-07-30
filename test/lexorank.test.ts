@@ -9,7 +9,6 @@ import {
   RankOrderError,
   RankSpaceExhaustedError,
   compareRanks,
-  equidistantRanks,
   firstRank,
   generateEntropy,
   isValidRank,
@@ -18,6 +17,7 @@ import {
   rankAfter,
   rankBefore,
   rankBetween,
+  ranksBetween,
 } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 
@@ -101,15 +101,15 @@ describe("rankBetween", () => {
   });
 });
 
-describe("equidistantRanks", () => {
+describe("ranksBetween", () => {
   it("returns count ascending ranks", () => {
-    const out = equidistantRanks(5, null, null);
+    const out = ranksBetween(5, null, null);
     expect(out).toHaveLength(5);
     expect([...out].sort()).toEqual(out);
   });
 
   it("keeps every value inside the given bounds", () => {
-    const out = equidistantRanks(7, "0|100000:", "0|900000:");
+    const out = ranksBetween(7, "0|100000:", "0|900000:");
     for (const r of out) {
       expect("0|100000:" < r).toBe(true);
       expect(r < "0|900000:").toBe(true);
@@ -117,23 +117,23 @@ describe("equidistantRanks", () => {
   });
 
   it("supports the full documented batch size", () => {
-    const out = equidistantRanks(MAX_BATCH_SIZE, null, null);
+    const out = ranksBetween(MAX_BATCH_SIZE, null, null);
     expect(out).toHaveLength(MAX_BATCH_SIZE);
     expect([...out].sort()).toEqual(out);
   });
 
   it("rejects identical bounds, exactly as rankBetween does", () => {
-    expect(() => equidistantRanks(1, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
-    expect(() => equidistantRanks(5, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
+    expect(() => ranksBetween(1, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
+    expect(() => ranksBetween(5, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
   });
 
   it.each([0, -1, 1.5, Number.NaN, MAX_BATCH_SIZE + 1, 1000])("rejects an invalid batch size of %s", (count) => {
-    expect(() => equidistantRanks(count, null, null)).toThrow(BatchSizeError);
+    expect(() => ranksBetween(count, null, null)).toThrow(BatchSizeError);
   });
 
   it("rejects a batch size that would otherwise never terminate", () => {
     // 61 items can never fit between two characters at any depth.
-    expect(() => equidistantRanks(61, null, null)).toThrow(BatchSizeError);
+    expect(() => ranksBetween(61, null, null)).toThrow(BatchSizeError);
   });
 });
 
@@ -320,8 +320,8 @@ describe("maxMinorLength option", () => {
     expect(survived).toBeLessThan(MAX_MINOR_LENGTH * 4);
   });
 
-  it("applies to equidistantRanks too", () => {
-    expect(() => equidistantRanks(2, "0|000000:", "0|000001:", { maxMinorLength: 0 })).toThrow(LexorankError);
+  it("applies to ranksBetween too", () => {
+    expect(() => ranksBetween(2, "0|000000:", "0|000001:", { maxMinorLength: 0 })).toThrow(LexorankError);
   });
 
   it.each([0, -1, 2.5, Number.NaN])("rejects an invalid limit of %s", (limit) => {
@@ -346,7 +346,7 @@ describe("open bounds delegate to the step primitives", () => {
     expect(rankBetween(null, null)).toBe(firstRank());
   });
 
-  it("keeps equidistantRanks(1, a, b) identical to rankBetween(a, b)", () => {
+  it("keeps ranksBetween(1, a, b) identical to rankBetween(a, b)", () => {
     const pairs: [string | null, string | null][] = [
       [null, null],
       ["0|UUUUUU:", null],
@@ -354,7 +354,7 @@ describe("open bounds delegate to the step primitives", () => {
       ["0|000000:", "0|zzzzzz:"],
     ];
     for (const [a, b] of pairs) {
-      expect(equidistantRanks(1, a, b)[0]).toBe(rankBetween(a, b));
+      expect(ranksBetween(1, a, b)[0]).toBe(rankBetween(a, b));
     }
   });
 
@@ -364,7 +364,7 @@ describe("open bounds delegate to the step primitives", () => {
       ["0|UUUUUU:", null],
       [null, "0|UUUUUU:"],
     ] as [string | null, string | null][]) {
-      const out = equidistantRanks(5, a, b);
+      const out = ranksBetween(5, a, b);
       expect(out).toHaveLength(5);
       expect([...out].sort()).toEqual(out);
       if (a !== null) for (const r of out) expect(r > a).toBe(true);
