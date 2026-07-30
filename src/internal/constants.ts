@@ -21,10 +21,20 @@ export const MIN_CHAR = 0x30; // '0'
 export const MAX_CHAR = 0x7a; // 'z'
 
 /**
- * Maximum length of the fractional component before we refuse to subdivide
- * further and ask the caller to rebalance.
+ * Default ceiling on the minor component, counted in Base-62 digits after
+ * the ":".
+ *
+ * This is a tripwire, not a capacity limit. Ordinary use never approaches it:
+ * the structural gap `rankAfter` leaves would absorb about fifteen subdivisions
+ * before a minor appears at all, and that headroom regenerates as items are
+ * spread around. A minor growing past a few characters means the same two
+ * neighbours are being subdivided over and over, and the list wants rebalancing.
+ *
+ * Past the structural runway the minor grows about one character per five
+ * insertions, so this default tolerates roughly 600 consecutive same-position
+ * inserts before refusing. Override it per call with `maxMinorLength`.
  */
-export const MAX_MINOR_LENGTH = 64;
+export const MAX_MINOR_LENGTH = 128;
 
 /**
  * Largest batch that can ever be placed in a single call.

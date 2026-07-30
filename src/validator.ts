@@ -7,7 +7,7 @@
  *             which must NOT end in "0"
  *
  * The trailing-zero rule matters for correctness, not tidiness. ":U" and ":U0"
- * denote the same fraction but are distinct strings, and *no* valid rank sorts
+ * denote the same minor but are distinct strings, and *no* valid rank sorts
  * strictly between them — the gap is provably empty, because any rank above
  * ":U" must extend it, and every extension sorts above ":U0" as well. Allowing
  * both forms therefore creates neighbours that can never be separated. Ranks
@@ -26,7 +26,7 @@ export function isValidRank(value: string): boolean {
   return LEXORANK_REGEX.test(value);
 }
 
-/** Returns `true` if the fraction is non-canonical because it ends in "0". */
+/** Returns `true` if the minor is non-canonical because it ends in "0". */
 export function hasTrailingZero(value: string): boolean {
   const colon = value.indexOf(":");
 

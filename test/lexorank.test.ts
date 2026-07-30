@@ -4,6 +4,7 @@ import {
   InvalidRankError,
   LexorankError,
   MAX_BATCH_SIZE,
+  MAX_MINOR_LENGTH,
   Position,
   RankOrderError,
   RankSpaceExhaustedError,
@@ -12,6 +13,7 @@ import {
   firstRank,
   generateEntropy,
   isValidRank,
+  minorLength,
   parseRank,
   rankAfter,
   rankBefore,
@@ -42,7 +44,7 @@ describe("rankBetween", () => {
     expect(rankBetween("", "")).toBe(firstRank());
   });
 
-  it("yields to the fractional space when majors are adjacent", () => {
+  it("yields to the minor space when majors are adjacent", () => {
     const mid = rankBetween("0|000000:", "0|000001:");
     expect(parseRank(mid)?.minor.length).toBeGreaterThan(1);
     expect("0|000000:" < mid).toBe(true);
@@ -125,12 +127,9 @@ describe("equidistantRanks", () => {
     expect(() => equidistantRanks(5, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
   });
 
-  it.each([0, -1, 1.5, Number.NaN, MAX_BATCH_SIZE + 1, 1000])(
-    "rejects an invalid batch size of %s",
-    (count) => {
-      expect(() => equidistantRanks(count, null, null)).toThrow(BatchSizeError);
-    },
-  );
+  it.each([0, -1, 1.5, Number.NaN, MAX_BATCH_SIZE + 1, 1000])("rejects an invalid batch size of %s", (count) => {
+    expect(() => equidistantRanks(count, null, null)).toThrow(BatchSizeError);
+  });
 
   it("rejects a batch size that would otherwise never terminate", () => {
     // 61 items can never fit between two characters at any depth.
@@ -204,23 +203,20 @@ describe("parseRank", () => {
     expect(Object.isFrozen(p)).toBe(true);
   });
 
-  it.each(["3|000000:", "0|00000:", "0|0000000:", "0|000000", "0|00000-:"])(
-    "rejects %s",
-    (value) => {
-      expect(() => parseRank(value)).toThrow(InvalidRankError);
-    },
-  );
+  it.each(["3|000000:", "0|00000:", "0|0000000:", "0|000000", "0|00000-:"])("rejects %s", (value) => {
+    expect(() => parseRank(value)).toThrow(InvalidRankError);
+  });
 });
 
 describe("canonical form (trailing zeros)", () => {
-  it("rejects a fraction ending in 0", () => {
-    // ":U" and ":U0" denote the same fraction, and no rank sorts between them,
+  it("rejects a minor ending in 0", () => {
+    // ":U" and ":U0" denote the same minor, and no rank sorts between them,
     // so permitting both would create inseparable neighbours.
     expect(isValidRank("0|ABCDEF:U0")).toBe(false);
     expect(() => parseRank("0|ABCDEF:U0")).toThrow(InvalidRankError);
   });
 
-  it("still allows zeros elsewhere in the fraction", () => {
+  it("still allows zeros elsewhere in the minor", () => {
     expect(isValidRank("0|ABCDEF:0U")).toBe(true);
     expect(isValidRank("0|ABCDEF:U0U")).toBe(true);
     expect(isValidRank("0|ABCDEF:")).toBe(true);
@@ -289,13 +285,86 @@ describe("ordering invariant", () => {
     expect(checked).toBeGreaterThan(3000);
   });
 
-  it("keeps repeated same-position insertion working well past the old limit", () => {
+  it("survives many same-position insertions, then fails cleanly", () => {
     const low = "0|000000:";
     let high = "0|000001:";
-    for (let i = 0; i < 1000; i++) {
-      high = rankBetween(low, high);
-      expect(low < high).toBe(true);
+    let survived = 0;
+
+    expect(() => {
+      for (;;) {
+        high = rankBetween(low, high);
+        expect(low < high).toBe(true);
+        survived++;
+      }
+    }).toThrow(RankSpaceExhaustedError);
+
+    expect(survived).toBeGreaterThan(MAX_MINOR_LENGTH * 4);
+    expect(minorLength(high)).toBeLessThanOrEqual(MAX_MINOR_LENGTH);
+  });
+});
+
+describe("maxMinorLength option", () => {
+  it("caps the minor at the requested length", () => {
+    const low = "0|000000:";
+    let high = "0|000001:";
+    let survived = 0;
+
+    expect(() => {
+      for (;;) {
+        high = rankBetween(low, high, { maxMinorLength: 16 });
+        survived++;
+      }
+    }).toThrow(RankSpaceExhaustedError);
+
+    expect(minorLength(high)).toBeLessThanOrEqual(16);
+    expect(survived).toBeLessThan(MAX_MINOR_LENGTH * 4);
+  });
+
+  it("applies to equidistantRanks too", () => {
+    expect(() => equidistantRanks(2, "0|000000:", "0|000001:", { maxMinorLength: 0 })).toThrow(LexorankError);
+  });
+
+  it.each([0, -1, 2.5, Number.NaN])("rejects an invalid limit of %s", (limit) => {
+    expect(() => rankBetween(null, null, { maxMinorLength: limit })).toThrow(LexorankError);
+  });
+});
+
+describe("minorLength", () => {
+  it("is zero for a rank with no minor", () => {
+    expect(minorLength(firstRank())).toBe(0);
+    expect(minorLength("0|ABCDEF:")).toBe(0);
+  });
+
+  it("excludes the colon from the count", () => {
+    expect(minorLength("0|ABCDEF:U")).toBe(1);
+    expect(minorLength("0|ABCDEF:UUU")).toBe(3);
+  });
+
+  it("treats an open bound as zero", () => {
+    expect(minorLength(null)).toBe(0);
+    expect(minorLength("")).toBe(0);
+  });
+
+  it("stays at zero through ordinary append-and-insert usage", () => {
+    const board = [firstRank()];
+    for (let i = 0; i < 40; i++) board.push(rankAfter(board[board.length - 1] as string));
+
+    let seed = 7;
+    const rnd = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+
+    for (let i = 0; i < 2000; i++) {
+      const idx = Math.floor(rnd() * (board.length - 1));
+      const value = rankBetween(board[idx] as string, board[idx + 1] as string);
+      board.splice(Math.floor(rnd() * board.length), 1);
+      board.push(value);
+      board.sort();
     }
+
+    const deepest = Math.max(...board.map((r) => minorLength(r)));
+    expect(deepest).toBeLessThan(8);
   });
 });
 
@@ -332,7 +401,7 @@ describe("generateEntropy", () => {
     }
   });
 
-  it("produces a valid rank when appended to a fraction", () => {
+  it("produces a valid rank when appended to a minor", () => {
     for (let i = 0; i < 5000; i++) {
       expect(isValidRank(`0|ABCDEF:U${generateEntropy()}`)).toBe(true);
     }
@@ -353,7 +422,7 @@ describe("generateEntropy", () => {
     }
   });
 
-  it("rejects a non-positive or fractional length", () => {
+  it("rejects a non-positive or minor length", () => {
     expect(() => generateEntropy(0)).toThrow(LexorankError);
     expect(() => generateEntropy(-1)).toThrow(LexorankError);
     expect(() => generateEntropy(2.5)).toThrow(LexorankError);

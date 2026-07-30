@@ -2,7 +2,7 @@ import { ALPHABET } from "./constants";
 import { LexorankError } from "../errors";
 
 /**
- * The alphabet minus "0". The final character of a fraction may never be "0",
+ * The alphabet excluding "0". The final character of a minor may never be "0",
  * so entropy that might be appended to a rank must not end in one either.
  */
 const TAIL_ALPHABET = ALPHABET.slice(1);
@@ -62,14 +62,14 @@ function createSampler(): (size: number) => number {
 
 /**
  * Generates a random Base-62 string, uniformly distributed and safe to append
- * to a rank's fractional component.
+ * to a rank's minor component.
  *
  * Useful for separating ranks computed concurrently by different clients, which
  * would otherwise be identical: the algorithm is deterministic, so two clients
  * inserting between the same neighbours derive the same value.
  *
  * The final character is never "0", so the result stays canonical when appended
- * to a fraction. Appending still widens the rank rather than preserving it, so
+ * to a minor. Appending still widens the rank rather than preserving it, so
  * check the upper bound afterwards - it is not a substitute for a uniqueness
  * constraint on the column.
  *

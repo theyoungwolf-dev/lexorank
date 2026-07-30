@@ -42,6 +42,7 @@ export function computeRanks(
   count: number,
   prev: Position | null,
   next: Position | null,
+  maxMinorLength: number = MAX_MINOR_LENGTH,
 ): Position[] {
   let low: Bound;
   let high: Bound;
@@ -50,12 +51,7 @@ export function computeRanks(
   if (prev === null) {
     low = { bucket: next?.bucket ?? 0, major: LOWEST_MAJOR, minor: ":" };
 
-    if (
-      next !== null &&
-      low.bucket === next.bucket &&
-      next.major === LOWEST_MAJOR &&
-      next.minor === ":"
-    ) {
+    if (next !== null && low.bucket === next.bucket && next.major === LOWEST_MAJOR && next.minor === ":") {
       if (low.bucket <= 0) {
         throw new RankSpaceExhaustedError(
           `Nothing sorts below ${JSON.stringify(next.toString())}, the lowest ` +
@@ -87,14 +83,14 @@ export function computeRanks(
     }
   }
 
-  return minorSpaceRanks(count, low, high);
+  return minorSpaceRanks(count, low, high, maxMinorLength);
 }
 
 /**
  * Searches the fixed-width integer space.
  *
  * Returns `null` when the majors turn out to be adjacent, signalling the caller
- * to continue in the fractional space instead.
+ * to continue in the minor space instead.
  */
 function majorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[] | null {
   const low = { ...lowIn };
@@ -108,7 +104,7 @@ function majorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[]
 
   // `prefix.length === depth` holds on every iteration, so the walk is bounded
   // by `width`: once the prefix fills the available width there is no room for
-  // another character and we must yield to the fractional space.
+  // another character and we must yield to the minor space.
   while (prefix.length < width) {
     const lowChar = charAt(low.major, depth, MIN_CHAR);
     const highChar = charAt(high.major, depth, MAX_CHAR);
@@ -154,8 +150,8 @@ function majorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[]
   return null;
 }
 
-/** Searches the unbounded fractional space. */
-function minorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[] {
+/** Searches the minor space, up to `maxMinorLength` digits. */
+function minorSpaceRanks(count: number, lowIn: Bound, highIn: Bound, maxMinorLength: number): Position[] {
   const low = { ...lowIn };
   const high = { ...highIn };
 
@@ -172,8 +168,9 @@ function minorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[]
   let prefix = "";
   let depth = 0;
 
-  // Bounded by MAX_MINOR_LENGTH: beyond that we refuse to subdivide further.
-  while (prefix.length < MAX_MINOR_LENGTH) {
+  // `prefix` carries the leading ":", so `prefix.length` equals the digit count
+  // of the minor this iteration would produce. Bounded accordingly.
+  while (prefix.length <= maxMinorLength) {
     const lowChar = charAt(low.minor, depth, MIN_CHAR);
     const highChar = charAt(high.minor, depth, MAX_CHAR);
 
@@ -208,7 +205,8 @@ function minorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[]
   }
 
   throw new RankSpaceExhaustedError(
-    `The fractional component reached its ${MAX_MINOR_LENGTH}-character limit; ` +
-      "rebalance the affected list to restore spacing.",
+    `The minor component reached its ${maxMinorLength}-digit limit. The same ` +
+      "two neighbours have been subdivided repeatedly; rebalance the affected list " +
+      "to restore spacing.",
   );
 }

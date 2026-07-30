@@ -46,7 +46,7 @@ export class BatchSizeError extends LexorankError {
 }
 
 /**
- * The fractional component cannot be subdivided any further, or the bucket space
+ * The minor component cannot be subdivided any further, or the bucket space
  * is exhausted. The caller should rebalance the affected list.
  */
 export class RankSpaceExhaustedError extends LexorankError {

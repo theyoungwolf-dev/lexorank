@@ -3,7 +3,7 @@
 Ordered ranking for drag-and-drop lists — the technique behind reorderable boards in tools like Jira. Insert, move and reorder items using stable string keys that sort correctly on their own, without renumbering their neighbours.
 
 - **Zero dependencies**, ESM + CJS, fully typed
-- **Effectively infinite precision** — a fixed-width integer component backed by an unbounded Base-62 fraction
+- **Effectively infinite precision** — a fixed-width integer component backed by an unbounded Base-62 minor
 - **One unconditional guarantee** — `prev < result < next`, re-checked on every call
 
 ## Install
@@ -50,10 +50,12 @@ The trade-off is space. `rankBetween` halves the remaining gap each time; `rankA
 | `rankBefore(to)`                      | Next rank below `to`, fixed step. Prepend only.       |
 | `equidistantRanks(count, prev, next)` | `count` evenly spaced ranks (1-`MAX_BATCH_SIZE`).     |
 | `compareRanks(a, b)`                  | Comparator for `Array.prototype.sort`.                |
+| `minorLength(rank)`                   | Digits in the minor component. A list-health signal.  |
 | `parseRank(value)`                    | Parse into a `Position`, or `null` for an open bound. |
 | `isValidRank(value)`                  | True for exactly the values this API accepts.         |
 | `generateEntropy()`                   | Random 3-character Base-62 string.                    |
 | `Position`                            | Immutable `{ bucket, major, minor }` value object.    |
+| `MAX_minor_LENGTH`                    | Default minor ceiling (128).                          |
 
 Every bound accepts `string | null | undefined`; `null`, `undefined` and `""` all mean "no bound on this side".
 
@@ -70,6 +72,48 @@ All errors extend `LexorankError`.
 | `RankSpaceExhaustedError` | Nothing can exist in the requested position; rebalance.                 |
 | `RankInvariantError`      | Internal safety net. Should never fire — please report it.              |
 
+## Known limitation: repeated same-position insertion
+
+Ranks between two neighbours are found by subdividing the gap. Subdivision is not free forever, so this is the one pattern that degrades.
+
+**It does not appear in ordinary use.** `rankAfter` leaves a structural gap of 1,000,000 units, which absorbs about fifteen subdivisions before a minor digit appears at all, and that headroom regenerates as items move around. Measured over 20,000 operations on a 40-card column:
+
+| Usage pattern                              | Deepest minor       |
+| ------------------------------------------ | ------------------- |
+| Uniform random position                    | 5 digits            |
+| 50% of moves to the top                    | 0 digits            |
+| Appending to the end                       | 0 digits            |
+| **Always between the same two neighbours** | grows without bound |
+
+Only the last pattern grows. Past the structural runway the minor gains roughly one digit per five insertions, so the number of consecutive same-position inserts a list tolerates is about **five times `maxminorLength`**:
+
+| `maxminorLength`  | Inserts before it throws | Widest row    |
+| ----------------- | ------------------------ | ------------- |
+| 32                | ~160                     | 41 bytes      |
+| 64                | ~320                     | 73 bytes      |
+| **128** (default) | **~640**                 | **137 bytes** |
+| 256               | ~1,280                   | 265 bytes     |
+
+Exceeding the limit raises `RankSpaceExhaustedError`. Tune it per call when your storage or rebalance cadence calls for something different:
+
+```ts
+rankBetween(before, after, { maxminorLength: 64 });
+```
+
+### Detecting it before it throws
+
+Treat the limit as a tripwire, not a budget. `minorLength` lets you spot a degrading list while it is still cheap to fix:
+
+```ts
+const deepest = Math.max(...column.map((task) => minorLength(task.rank)));
+
+if (deepest > 24) {
+  await rebalanceColumn(columnId); // background, before any user hits the wall
+}
+```
+
+Ordinary ranks are 9-13 bytes with a minor of zero, so any column whose deepest rank runs to a couple of dozen digits is worth rebalancing whatever limit you have set. Rebalancing resets every minor to zero and restores the full structural gap.
+
 ## Rank format
 
 ```
@@ -79,13 +123,13 @@ All errors extend `LexorankError`.
 
 - **bucket** (0-2) — extra headroom; `rankAfter` / `rankBefore` roll into the neighbouring bucket when the integer space runs out
 - **major** — fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
-- **minor** — unbounded Base-62 fraction, used once the integer space between two neighbours is exhausted
+- **minor** — unbounded Base-62 minor, used once the integer space between two neighbours is exhausted
 
 Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings — no custom collation in your database.
 
 ### Canonical form
 
-A fraction must not end in `0`. `:U` and `:U0` denote the same value but are different strings, and **no rank sorts strictly between them** — the gap is provably empty, since any rank above `:U` must extend it and every extension also sorts above `:U0`. Permitting both forms would create neighbours that can never be separated, so non-canonical values are rejected on parse. Ranks produced by this library are always canonical; the rule only affects hand-written or externally generated data.
+A minor must not end in `0`. `:U` and `:U0` denote the same value but are different strings, and **no rank sorts strictly between them** — the gap is provably empty, since any rank above `:U` must extend it and every extension also sorts above `:U0`. Permitting both forms would create neighbours that can never be separated, so non-canonical values are rejected on parse. Ranks produced by this library are always canonical; the rule only affects hand-written or externally generated data.
 
 ### Duplicate bounds
 

@@ -21,7 +21,7 @@ These look like cleanup opportunities. They are not. Each encodes a decision tha
 
 **The ordering invariant has no exemptions.** `assertWithinBounds` in `src/lexorank.ts` checks every returned rank against its bounds on every call. Do not add special cases to it. An earlier version carried a `degenerate` flag to exempt identical bounds; removing that carve-out is what let the guard catch a real bug in the implementation earlier.
 
-**Trailing zeros are non-canonical and rejected on parse.** `:U` and `:U0` denote the same fraction but are different strings, and _no_ valid rank sorts between them — the gap is provably empty. Permitting both creates neighbours that can never be separated. Do not relax `LEXORANK_REGEX` to accept them.
+**Trailing zeros are non-canonical and rejected on parse.** `:U` and `:U0` denote the same minor but are different strings, and _no_ valid rank sorts between them — the gap is provably empty. Permitting both creates neighbours that can never be separated. Do not relax `LEXORANK_REGEX` to accept them.
 
 **`MAX_BATCH_SIZE` is 60, derived not arbitrary.** A batch needs one whole character per item and the widest gap spans 61 steps, so 61 items never fit at any depth.
 

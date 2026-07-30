@@ -2,16 +2,25 @@ import {
   BatchSizeError,
   DuplicateRankError,
   InvalidRankError,
+  LexorankError,
   RankInvariantError,
   RankOrderError,
   RankSpaceExhaustedError,
-} from "./errors";
-import { LOWEST_MAJOR, MAX_BATCH_SIZE, MAX_BUCKET, MAX_MAJOR_VALUE, MID_MAJOR, STEP_SIZE } from "./internal/constants";
-import { decodeBase62, toMajor } from "./internal/base62";
+} from "./errors.js";
+import {
+  LOWEST_MAJOR,
+  MAX_BATCH_SIZE,
+  MAX_BUCKET,
+  MAX_MAJOR_VALUE,
+  MAX_MINOR_LENGTH,
+  MID_MAJOR,
+  STEP_SIZE,
+} from "./internal/constants.js";
+import { decodeBase62, toMajor } from "./internal/base62.js";
 
-import { LEXORANK_REGEX } from "./validator";
-import { Position } from "./position";
-import { computeRanks } from "./internal/ranks";
+import { LEXORANK_REGEX } from "./validator.js";
+import { Position } from "./position.js";
+import { computeRanks } from "./internal/ranks.js";
 
 /**
  * A rank boundary. `null`, `undefined` and `""` all mean "no boundary on this
@@ -19,7 +28,32 @@ import { computeRanks } from "./internal/ranks";
  */
 export type RankInput = string | null | undefined;
 
+/** Options accepted by every function that may subdivide the minor. */
+export interface RankOptions {
+  /**
+   * Maximum minor length, in Base-62 digits, before
+   * {@link RankSpaceExhaustedError} is thrown. Defaults to
+   * {@link MAX_MINOR_LENGTH}.
+   *
+   * Lower values surface a runaway list sooner and bound the width of the
+   * column you store ranks in; higher values tolerate more consecutive
+   * same-position inserts between a rebalance. Ordinary use stays well under
+   * either, so this is a tripwire rather than a capacity setting.
+   */
+  maxMinorLength?: number;
+}
+
 const normalise = (value: RankInput): string => value ?? "";
+
+function resolveLimit(options: RankOptions | undefined): number {
+  const limit = options?.maxMinorLength ?? MAX_MINOR_LENGTH;
+
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new LexorankError(`maxMinorLength must be a positive integer, but received ${limit}.`);
+  }
+
+  return limit;
+}
 
 /**
  * Parses a LexoRank string into a {@link Position}.
@@ -107,6 +141,31 @@ function assertWithinBounds(results: string[], prev: string, next: string): void
   }
 }
 
+/**
+ * Returns the number of Base-62 digits in a rank's minor component.
+ *
+ * Zero means the rank sits purely in the fixed-width integer space, which is
+ * where ordinary ranks live. A non-trivial value means the same two neighbours
+ * have been subdivided repeatedly.
+ *
+ * Use it to monitor list health and rebalance before anything throws. Normal
+ * usage stays at or near zero even after tens of thousands of moves, so a
+ * column whose deepest rank is more than a couple of dozen digits is worth
+ * rebalancing regardless of where its limit sits.
+ *
+ * @throws {InvalidRankError} if `rank` is malformed or non-canonical.
+ */
+export function minorLength(rank: RankInput): number {
+  const position = parseRank(rank);
+
+  if (position === null) {
+    return 0;
+  }
+
+  // `minor` carries its leading ":", which is not a digit.
+  return position.minor.length - 1;
+}
+
 /** The first rank for an empty list, centred in the available space. */
 export function firstRank(): string {
   return new Position(0, MID_MAJOR, ":").toString();
@@ -133,10 +192,11 @@ export function firstRank(): string {
  *   between two identical ranks, so the list must be rebalanced first.
  * @throws {InvalidRankError} if either bound is malformed or non-canonical.
  */
-export function rankBetween(prev: RankInput, next: RankInput): string {
+export function rankBetween(prev: RankInput, next: RankInput, options?: RankOptions): string {
+  const limit = resolveLimit(options);
   const [low, high] = parseBounds(prev, next);
 
-  const result = (computeRanks(1, low, high)[0] as Position).toString();
+  const result = (computeRanks(1, low, high, limit)[0] as Position).toString();
 
   assertWithinBounds([result], normalise(prev), normalise(next));
 
@@ -153,14 +213,15 @@ export function rankBetween(prev: RankInput, next: RankInput): string {
  * @throws {RankOrderError} if `prev` sorts after `next`.
  * @throws {DuplicateRankError} if both bounds are the same rank.
  */
-export function equidistantRanks(count: number, prev: RankInput, next: RankInput): string[] {
+export function equidistantRanks(count: number, prev: RankInput, next: RankInput, options?: RankOptions): string[] {
   if (!Number.isInteger(count) || count < 1 || count > MAX_BATCH_SIZE) {
     throw new BatchSizeError(count, MAX_BATCH_SIZE);
   }
 
+  const limit = resolveLimit(options);
   const [low, high] = parseBounds(prev, next);
 
-  const results = computeRanks(count, low, high).map((position) => position.toString());
+  const results = computeRanks(count, low, high, limit).map((position) => position.toString());
 
   assertWithinBounds(results, normalise(prev), normalise(next));
 
@@ -173,13 +234,13 @@ export function equidistantRanks(count: number, prev: RankInput, next: RankInput
  *
  * This is the append primitive: `firstRank()` then `rankAfter()` repeatedly is
  * the intended way to build a fresh list, and gives roughly 86,000 sequential
- * appends before the fractional/minor component is touched.
+ * appends before the minor component is touched.
  *
  * It depends only on `to`, so it is safe **only** when nothing follows `to`.
  * Calling it twice against the same anchor returns the same rank; to place an
- * item before an existing one but strictly after the current one, use {@link rankBetween} instead.
+ * item before an existing one, use {@link rankBetween}.
  */
-export function rankAfter(to: RankInput): string {
+export function rankAfter(to: RankInput, options?: RankOptions): string {
   const text = normalise(to);
 
   if (text === "") {
@@ -191,9 +252,9 @@ export function rankAfter(to: RankInput): string {
 
   if (value > MAX_MAJOR_VALUE) {
     // Integer space exhausted. Move up a bucket if one is free, otherwise fall
-    // back to subdividing the fractional space.
+    // back to subdividing the minor space.
     if (position.bucket >= MAX_BUCKET) {
-      return rankBetween(text, null);
+      return rankBetween(text, null, options);
     }
 
     return new Position(position.bucket + 1, MID_MAJOR, ":").toString();
@@ -207,13 +268,13 @@ export function rankAfter(to: RankInput): string {
  * insertions still have room. Pass `null` to get {@link firstRank}.
  *
  * As with {@link rankAfter}, this depends only on `to` and is safe only when
- * nothing precedes it. Strictly use {@link rankBetween} to insert after an existing item
- * but before the current one.
+ * nothing precedes it. Strictly use {@link rankBetween} to insert after an
+ *  existing item but before the current one.
  *
  * @throws {RankSpaceExhaustedError} if `to` is the absolute floor
  *   (`0|000000:`). Nothing sorts below it, so the list must be rebalanced.
  */
-export function rankBefore(to: RankInput): string {
+export function rankBefore(to: RankInput, options?: RankOptions): string {
   const text = normalise(to);
 
   if (text === "") {
@@ -231,7 +292,7 @@ export function rankBefore(to: RankInput): string {
         );
       }
 
-      return rankBetween(null, text);
+      return rankBetween(null, text, options);
     }
 
     return new Position(position.bucket - 1, MID_MAJOR, ":").toString();

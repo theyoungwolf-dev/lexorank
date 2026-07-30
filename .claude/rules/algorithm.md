@@ -32,7 +32,7 @@ Ranks sort correctly as plain strings because every component is fixed-width or 
 
 `computeRanks` normalises the bounds, then tries `majorSpaceRanks` first and falls back to `minorSpaceRanks`.
 
-- `majorSpaceRanks` returns `null` to mean "the majors are adjacent, try the fraction". It does not throw.
+- `majorSpaceRanks` returns `null` to mean "the majors are adjacent, try the minor space". It does not throw.
 - Both loops are bounded by their `while` condition, not by an internal counter. `majorSpaceRanks` is bounded by the major width; `minorSpaceRanks` by `MAX_MINOR_LENGTH`. Termination is structural — keep it that way rather than adding iteration counters.
 - Both functions clone their bounds. They mutate their working copies, so passing a `Position` straight through would corrupt the caller's data.
 
