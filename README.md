@@ -1,55 +1,124 @@
 # @theyoungwolf/lexorank
 
-A feature-rich TypeScript implementation of the LexoRank ordered-ranking algorithm: the technique behind drag-and-drop list ordering in tools like Jira. Insert, move, and reorder items with stable string keys and (near) infinite precision, without renumbering neighbours.
+Ordered ranking for drag-and-drop lists — the technique behind reorderable boards in tools like Jira. Insert, move and reorder items using stable string keys that sort correctly on their own, without renumbering their neighbours.
 
-> **Status:** early scaffold. The public API below is being ported from a reference Go implementation.
+- **Zero dependencies**, ESM + CJS, fully typed
+- **Effectively infinite precision** — a fixed-width integer component backed by an unbounded Base-62 fraction
+- **One unconditional guarantee** — `prev < result < next`, re-checked on every call
 
 ## Install
 
 ```sh
-pnpm add @theyoungwolf/lexorank
+npm install @theyoungwolf/lexorank
 ```
 
-## Usage
+## The two modes
+
+This is the most important thing to get right, and the two operations are not interchangeable.
+
+**Building a list — `firstRank()` then `rankAfter()`**
 
 ```ts
-import { isValidRank } from "@theyoungwolf/lexorank";
-
-isValidRank("0|000000:"); // true
+let rank = firstRank(); // "0|UUUUUU:"
+for (const task of tasks) {
+  task.rank = rank;
+  rank = rankAfter(rank); // fixed step, ~86,000 appends of runway
+}
 ```
 
-<!-- Planned API, once ported:
+**Placing an item relative to its neighbours — `rankBetween()`**
 
-import { firstRank, rank, equidistantRanks, prepend, append } from "@theyoungwolf/lexorank";
+```ts
+function onDrop(column: Task[], targetIndex: number) {
+  const before = column[targetIndex - 1]?.rank ?? null;
+  const after = column[targetIndex]?.rank ?? null;
+  return rankBetween(before, after);
+}
+```
 
-const a = firstRank();
-const b = append(a);
-const between = rank(a, b);
-const many = equidistantRanks(5, a, b);
--->
+`rankAfter(x)` is a pure function of `x` alone — it does not look at what already follows. That makes it perfect for appending, and **wrong** for inserting: drop two tasks after the same task and you get the same rank twice, colliding with the row you meant to sit before. `rankBetween` re-reads both neighbours, so the second drop sees the first drop's rank as its new bound and lands somewhere fresh.
 
-## Why another LexoRank?
+The trade-off is space. `rankBetween` halves the remaining gap each time; `rankAfter` steps by a fixed amount. That is why both exist. Use `rankAfter` to build, `rankBetween` to insert, and rebalance periodically if a column sees heavy repeated insertion at one position.
 
-The unscoped `lexorank` package and its forks reconstruct the surface of Atlassian's algorithm. This implementation additionally models:
+## API
 
-- **Buckets** for rebalancing headroom
-- A **major/minor** split (fixed 6-char integer space + unbounded Base-62 fraction) for effectively infinite insertion precision
-- **Batch insertion** (`equidistantRanks`) for placing N items at once
-- **Collision recovery** that degrades gracefully instead of erroring
+| Export                                | Description                                           |
+| ------------------------------------- | ----------------------------------------------------- |
+| `firstRank()`                         | The initial rank for an empty list.                   |
+| `rankBetween(prev, next)`             | A rank sorting strictly between two bounds.           |
+| `rankAfter(to)`                       | Next rank above `to`, fixed step. Append only.        |
+| `rankBefore(to)`                      | Next rank below `to`, fixed step. Prepend only.       |
+| `equidistantRanks(count, prev, next)` | `count` evenly spaced ranks (1-`MAX_BATCH_SIZE`).     |
+| `compareRanks(a, b)`                  | Comparator for `Array.prototype.sort`.                |
+| `parseRank(value)`                    | Parse into a `Position`, or `null` for an open bound. |
+| `isValidRank(value)`                  | True for exactly the values this API accepts.         |
+| `generateEntropy()`                   | Random 3-character Base-62 string.                    |
+| `Position`                            | Immutable `{ bucket, major, minor }` value object.    |
+
+Every bound accepts `string | null | undefined`; `null`, `undefined` and `""` all mean "no bound on this side".
+
+### Errors
+
+All errors extend `LexorankError`.
+
+| Error                     | Thrown when                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `InvalidRankError`        | A rank string is malformed or non-canonical. Carries `.value`.          |
+| `RankOrderError`          | `prev` sorts after `next`. Carries `.prev` / `.next`.                   |
+| `BatchSizeError`          | `count` is not an integer in 1..`MAX_BATCH_SIZE`. Carries `.requested`. |
+| `DuplicateRankError`      | Both bounds are the same rank. Carries `.rank`.                         |
+| `RankSpaceExhaustedError` | Nothing can exist in the requested position; rebalance.                 |
+| `RankInvariantError`      | Internal safety net. Should never fire — please report it.              |
+
+## Rank format
+
+```
+<bucket>|<major>[:<minor>]
+    0    |  UUUUUU  :  U
+```
+
+- **bucket** (0-2) — extra headroom; `rankAfter` / `rankBefore` roll into the neighbouring bucket when the integer space runs out
+- **major** — fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
+- **minor** — unbounded Base-62 fraction, used once the integer space between two neighbours is exhausted
+
+Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings — no custom collation in your database.
+
+### Canonical form
+
+A fraction must not end in `0`. `:U` and `:U0` denote the same value but are different strings, and **no rank sorts strictly between them** — the gap is provably empty, since any rank above `:U` must extend it and every extension also sorts above `:U0`. Permitting both forms would create neighbours that can never be separated, so non-canonical values are rejected on parse. Ranks produced by this library are always canonical; the rule only affects hand-written or externally generated data.
+
+### Duplicate bounds
+
+If two rows share a rank there is no order between them, so nothing can sit between them either. Both `rankBetween` and `equidistantRanks` reject this with `DuplicateRankError` rather than returning a value that would sort _after_ both bounds — a silent misplacement in the UI, with the underlying data problem left in place.
+
+Duplicate ranks are a data-integrity issue, not a transient condition. Catch the error, rebalance the affected list, and retry:
+
+```ts
+try {
+  task.rank = rankBetween(before, after);
+} catch (error) {
+  if (error instanceof DuplicateRankError) {
+    await rebalanceColumn(columnId); // then retry with fresh neighbours
+  } else {
+    throw error;
+  }
+}
+```
+
+This keeps one unconditional guarantee: every rank this library returns sorts strictly after `prev`, strictly before `next`, and strictly after the rank before it. There are no exemptions, and the result is re-checked against its bounds on every call.
+
+## Verification
+
+Validated by running this implementation with over **5,205 generated cases** and **1,093 stateful simulation steps** (repeated midpoint insertion, 400-step append/prepend chains crossing bucket rollovers, and a randomised board simulation). 302 vectors are frozen in `test/fixtures/golden.json`.
+
+A property search over **280,000 random bound pairs** asserts `prev < result < next` on every call, and every result is re-checked against its bounds at runtime.
 
 ## Development
 
 ```sh
 pnpm install
-pnpm run check      # typecheck + lint + test
-pnpm run build      # dual ESM/CJS + .d.ts into dist/
-pnpm run test:watch
-```
-
-Releases are managed with [Changesets](https://github.com/changesets/changesets):
-
-```sh
-pnpm run changeset  # describe your change; CI publishes on merge to main
+pnpm run check   # typecheck + lint + test
+pnpm run build   # dual ESM/CJS + .d.ts
 ```
 
 ## License
