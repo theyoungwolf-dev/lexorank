@@ -8,7 +8,7 @@
  *
  * The trailing-zero rule matters for correctness, not tidiness. ":U" and ":U0"
  * denote the same minor but are distinct strings, and *no* valid rank sorts
- * strictly between them — the gap is provably empty, because any rank above
+ * strictly between them - the gap is provably empty, because any rank above
  * ":U" must extend it, and every extension sorts above ":U0" as well. Allowing
  * both forms therefore creates neighbours that can never be separated. Ranks
  * produced by this library are always canonical; the rule only rejects

@@ -9,7 +9,7 @@ paths:
 
 `test/fixtures/golden.json` was captured by running the implementation over a generated corpus. Each entry is `{ op, args, out }`, where `out: null` means the rejection of the input.
 
-**Never regenerate the fixture to make a test pass.** A failing golden test means behaviour changed. Either the change is a regression, or it is an intentional divergence that needs discussing — both require a human decision, not a fixture rewrite.
+**Never regenerate the fixture to make a test pass.** A failing golden test means behaviour changed. Either the change is a regression, or it is an intentional divergence that needs discussing - both require a human decision, not a fixture rewrite.
 
 ## What a new test should look like
 

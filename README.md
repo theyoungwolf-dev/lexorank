@@ -1,10 +1,10 @@
 # @theyoungwolf/lexorank
 
-Ordered ranking for drag-and-drop lists — the technique behind reorderable boards in tools like Jira. Insert, move and reorder items using stable string keys that sort correctly on their own, without renumbering their neighbours.
+Ordered ranking for drag-and-drop lists - the technique behind reorderable boards in tools like Jira. Insert, move and reorder items using stable string keys that sort correctly on their own, without renumbering their neighbours.
 
 - **Zero dependencies**, ESM + CJS, fully typed
-- **Effectively infinite precision** — a fixed-width integer component backed by an unbounded Base-62 minor
-- **One unconditional guarantee** — `prev < result < next`, re-checked on every call
+- **Effectively infinite precision** - a fixed-width integer component backed by an unbounded Base-62 minor
+- **One unconditional guarantee** - `prev < result < next`, re-checked on every call
 
 ## Install
 
@@ -16,7 +16,7 @@ npm install @theyoungwolf/lexorank
 
 This is the most important thing to get right, and the two operations are not interchangeable.
 
-**Building a list — `firstRank()` then `rankAfter()`**
+**Building a list - `firstRank()` then `rankAfter()`**
 
 ```ts
 let rank = firstRank(); // "0|UUUUUU:"
@@ -26,7 +26,7 @@ for (const task of tasks) {
 }
 ```
 
-**Placing an item relative to its neighbours — `rankBetween()`**
+**Placing an item relative to its neighbours - `rankBetween()`**
 
 ```ts
 function onDrop(column: Task[], targetIndex: number) {
@@ -36,7 +36,7 @@ function onDrop(column: Task[], targetIndex: number) {
 }
 ```
 
-`rankAfter(x)` is a pure function of `x` alone — it does not look at what already follows. That makes it perfect for appending, and **wrong** for inserting: drop two tasks after the same task and you get the same rank twice, colliding with the row you meant to sit before. `rankBetween` re-reads both neighbours, so the second drop sees the first drop's rank as its new bound and lands somewhere fresh.
+`rankAfter(x)` is a pure function of `x` alone - it does not look at what already follows. That makes it perfect for appending, and **wrong** for inserting: drop two tasks after the same task and you get the same rank twice, colliding with the row you meant to sit before. `rankBetween` re-reads both neighbours, so the second drop sees the first drop's rank as its new bound and lands somewhere fresh.
 
 The trade-off is space. `rankBetween` halves the remaining gap each time; `rankAfter` steps by a fixed amount. That is why both exist. Use `rankAfter` to build, `rankBetween` to insert, and rebalance periodically if a column sees heavy repeated insertion at one position.
 
@@ -70,7 +70,7 @@ All errors extend `LexorankError`.
 | `BatchSizeError`          | `count` is not an integer in 1..`MAX_BATCH_SIZE`. Carries `.requested`. |
 | `DuplicateRankError`      | Both bounds are the same rank. Carries `.rank`.                         |
 | `RankSpaceExhaustedError` | Nothing can exist in the requested position; rebalance.                 |
-| `RankInvariantError`      | Internal safety net. Should never fire — please report it.              |
+| `RankInvariantError`      | Internal safety net. Should never fire - please report it.              |
 
 ## Known limitation: repeated same-position insertion
 
@@ -121,19 +121,19 @@ Ordinary ranks are 9-13 bytes with a minor of zero, so any column whose deepest 
     0    |  UUUUUU  :  U
 ```
 
-- **bucket** (0-2) — extra headroom; `rankAfter` / `rankBefore` roll into the neighbouring bucket when the integer space runs out
-- **major** — fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
-- **minor** — unbounded Base-62 minor, used once the integer space between two neighbours is exhausted
+- **bucket** (0-2) - extra headroom; `rankAfter` / `rankBefore` roll into the neighbouring bucket when the integer space runs out
+- **major** - fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
+- **minor** - unbounded Base-62 minor, used once the integer space between two neighbours is exhausted
 
-Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings — no custom collation in your database.
+Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings - no custom collation in your database.
 
 ### Canonical form
 
-A minor must not end in `0`. `:U` and `:U0` denote the same value but are different strings, and **no rank sorts strictly between them** — the gap is provably empty, since any rank above `:U` must extend it and every extension also sorts above `:U0`. Permitting both forms would create neighbours that can never be separated, so non-canonical values are rejected on parse. Ranks produced by this library are always canonical; the rule only affects hand-written or externally generated data.
+A minor must not end in `0`. `:U` and `:U0` denote the same value but are different strings, and **no rank sorts strictly between them** - the gap is provably empty, since any rank above `:U` must extend it and every extension also sorts above `:U0`. Permitting both forms would create neighbours that can never be separated, so non-canonical values are rejected on parse. Ranks produced by this library are always canonical; the rule only affects hand-written or externally generated data.
 
 ### Duplicate bounds
 
-If two rows share a rank there is no order between them, so nothing can sit between them either. Both `rankBetween` and `equidistantRanks` reject this with `DuplicateRankError` rather than returning a value that would sort _after_ both bounds — a silent misplacement in the UI, with the underlying data problem left in place.
+If two rows share a rank there is no order between them, so nothing can sit between them either. Both `rankBetween` and `equidistantRanks` reject this with `DuplicateRankError` rather than returning a value that would sort _after_ both bounds - a silent misplacement in the UI, with the underlying data problem left in place.
 
 Duplicate ranks are a data-integrity issue, not a transient condition. Catch the error, rebalance the affected list, and retry:
 

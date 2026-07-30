@@ -41,13 +41,13 @@ let failures = 0;
 /**
  * A thrown RankInvariantError means the library produced a rank outside its
  * bounds and its own guard caught it. That is always a bug, never a valid
- * outcome — never swallow it as "rejected input".
+ * outcome - never swallow it as "rejected input".
  */
 const isInvariantFailure = (error) => error?.name === "RankInvariantError";
 
 const report = (name, ok, detail = "") => {
   if (!ok) failures++;
-  console.log(`  ${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` - ${detail}` : ""}`);
 };
 
 console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?? 20260731})\n`);
@@ -72,8 +72,7 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     } catch (error) {
       if (isInvariantFailure(error)) {
         violations++;
-        if (samples.length < 5)
-          samples.push(`${low} | ${high} -> ${error.produced} (invariant guard)`);
+        if (samples.length < 5) samples.push(`${low} | ${high} -> ${error.produced} (invariant guard)`);
         checked++;
       }
       continue; // any other rejection is a valid outcome
@@ -86,11 +85,7 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     }
   }
 
-  report(
-    "ordering invariant on random pairs",
-    violations === 0,
-    `${checked} checked, ${violations} violations`,
-  );
+  report("ordering invariant on random pairs", violations === 0, `${checked} checked, ${violations} violations`);
   for (const s of samples) console.log(`        ${s}`);
 }
 

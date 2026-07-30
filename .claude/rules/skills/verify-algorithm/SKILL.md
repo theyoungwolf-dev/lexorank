@@ -5,7 +5,7 @@ description: Verify a change to the ranking algorithm is correct. Use after edit
 
 # Verifying an algorithm change
 
-Ordering bugs in this library are silent. A wrong rank still parses, still sorts, and still looks plausible — it just puts a card in the wrong place. The unit suite alone has already missed one real bug, so use these layers in order.
+Ordering bugs in this library are silent. A wrong rank still parses, still sorts, and still looks plausible - it just puts a card in the wrong place. The unit suite alone has already missed one real bug, so use these layers in order.
 
 ## 1. The suite
 
@@ -13,7 +13,7 @@ Ordering bugs in this library are silent. A wrong rank still parses, still sorts
 pnpm run check
 ```
 
-Typecheck, lint and 358 tests including the golden vectors. If a golden test fails, stop and read `.claude/rules/testing.md` — do not touch the fixture.
+Typecheck, lint and 358 tests including the golden vectors. If a golden test fails, stop and read `.claude/rules/testing.md` - do not touch the fixture.
 
 ## 2. The property check
 
@@ -32,7 +32,7 @@ To reproduce a specific failure, pass the seed:
 SEED=12345 node .claude/skills/verify-algorithm/scripts/property-check.mjs 500000
 ```
 
-Run this whenever you change how ranks are computed, compared, parsed or validated. Skipping it is how the trailing-zero bug survived — it passed every hand-written test and only appeared after ~200,000 random pairs.
+Run this whenever you change how ranks are computed, compared, parsed or validated. Skipping it is how the trailing-zero bug survived - it passed every hand-written test and only appeared after ~200,000 random pairs.
 
 ## Reporting
 
