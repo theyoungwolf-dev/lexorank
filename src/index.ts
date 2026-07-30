@@ -1,19 +1,30 @@
 /**
  * @theyoungwolf/lexorank
  *
- * Public API surface. Keep this file limited to the *intended public API* —
- * internal helpers (byteToOrder, mids, majorRanks, minorRanks, base62, entropy)
- * live under `src/internal/` and should NOT be re-exported.
+ * Ordered ranking for drag-and-drop lists: insert, move and reorder items using
+ * stable string keys that sort correctly without renumbering their neighbours.
  */
 
-export { isValidRank, LEXORANK_REGEX } from "./validator.js";
-
-// --- Planned public API (ported next, module by module) ---------------------
-// export { Position } from "./position.js";
-// export {
-//   rank,             // between two ranks
-//   firstRank,
-//   equidistantRanks, // n ranks between two
-//   prepend,
-//   append,
-// } from "./lexorank.js";
+export {
+  BatchSizeError,
+  DuplicateRankError,
+  InvalidRankError,
+  LexorankError,
+  RankInvariantError,
+  RankOrderError,
+  RankSpaceExhaustedError,
+} from "./errors.js";
+export { MAX_BATCH_SIZE, MAX_BUCKET, MAX_MINOR_LENGTH } from "./internal/constants.js";
+export { generateEntropy } from "./internal/entropy.js";
+export {
+  compareRanks,
+  equidistantRanks,
+  firstRank,
+  parseRank,
+  type RankInput,
+  rankAfter,
+  rankBefore,
+  rankBetween,
+} from "./lexorank.js";
+export { Position } from "./position.js";
+export { hasTrailingZero, isValidRank, LEXORANK_REGEX } from "./validator.js";
