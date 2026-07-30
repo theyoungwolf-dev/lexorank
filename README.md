@@ -54,4 +54,4 @@ pnpm run changeset  # describe your change; CI publishes on merge to main
 
 ## License
 
-(MIT)[LICENSE]
+[MIT](LICENSE)
