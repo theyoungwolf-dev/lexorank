@@ -331,22 +331,56 @@
   {
     "op": "equidistant",
     "args": ["7", "0|000000:", "0|zzzzzz:"],
-    "out": ["0|7UUUUU:", "0|EUUUUU:", "0|LUUUUU:", "0|SUUUUU:", "0|ZUUUUU:", "0|gUUUUU:", "0|nUUUUU:"]
+    "out": [
+      "0|7UUUUU:",
+      "0|EUUUUU:",
+      "0|LUUUUU:",
+      "0|SUUUUU:",
+      "0|ZUUUUU:",
+      "0|gUUUUU:",
+      "0|nUUUUU:"
+    ]
   },
   {
     "op": "equidistant",
     "args": ["7", "0|AAAAAA:", "0|zzzzzz:"],
-    "out": ["0|GUUUUU:", "0|MUUUUU:", "0|SUUUUU:", "0|YUUUUU:", "0|eUUUUU:", "0|kUUUUU:", "0|qUUUUU:"]
+    "out": [
+      "0|GUUUUU:",
+      "0|MUUUUU:",
+      "0|SUUUUU:",
+      "0|YUUUUU:",
+      "0|eUUUUU:",
+      "0|kUUUUU:",
+      "0|qUUUUU:"
+    ]
   },
   {
     "op": "equidistant",
     "args": ["8", "0|000000:", "0|zzzzzz:"],
-    "out": ["0|6UUUUU:", "0|CUUUUU:", "0|IUUUUU:", "0|OUUUUU:", "0|UUUUUU:", "0|aUUUUU:", "0|gUUUUU:", "0|mUUUUU:"]
+    "out": [
+      "0|6UUUUU:",
+      "0|CUUUUU:",
+      "0|IUUUUU:",
+      "0|OUUUUU:",
+      "0|UUUUUU:",
+      "0|aUUUUU:",
+      "0|gUUUUU:",
+      "0|mUUUUU:"
+    ]
   },
   {
     "op": "equidistant",
     "args": ["8", "0|AAAAAA:", "0|zzzzzz:"],
-    "out": ["0|FUUUUU:", "0|KUUUUU:", "0|PUUUUU:", "0|UUUUUU:", "0|ZUUUUU:", "0|eUUUUU:", "0|jUUUUU:", "0|oUUUUU:"]
+    "out": [
+      "0|FUUUUU:",
+      "0|KUUUUU:",
+      "0|PUUUUU:",
+      "0|UUUUUU:",
+      "0|ZUUUUU:",
+      "0|eUUUUU:",
+      "0|jUUUUU:",
+      "0|oUUUUU:"
+    ]
   },
   {
     "op": "equidistant",

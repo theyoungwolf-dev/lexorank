@@ -17,7 +17,8 @@ function getRandomSource(): CryptoLike {
 
   if (webcrypto === undefined || typeof webcrypto.getRandomValues !== "function") {
     throw new LexorankError(
-      "No cryptographic random source is available. Web Crypto is required " + "(Node 18+ or any modern browser).",
+      "No cryptographic random source is available. Web Crypto is required " +
+        "(Node 18+ or any modern browser).",
     );
   }
 

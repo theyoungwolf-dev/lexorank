@@ -128,9 +128,12 @@ describe("ranksBetween", () => {
     expect(() => ranksBetween(5, "0|ABCDEF:", "0|ABCDEF:")).toThrow(DuplicateRankError);
   });
 
-  it.each([0, -1, 1.5, Number.NaN, MAX_BATCH_SIZE + 1, 1000])("rejects an invalid batch size of %s", (count) => {
-    expect(() => ranksBetween(count, null, null)).toThrow(BatchSizeError);
-  });
+  it.each([0, -1, 1.5, Number.NaN, MAX_BATCH_SIZE + 1, 1000])(
+    "rejects an invalid batch size of %s",
+    (count) => {
+      expect(() => ranksBetween(count, null, null)).toThrow(BatchSizeError);
+    },
+  );
 
   it("rejects a batch size that would otherwise never terminate", () => {
     // 61 items can never fit between two characters at any depth.
@@ -204,9 +207,12 @@ describe("parseRank", () => {
     expect(Object.isFrozen(p)).toBe(true);
   });
 
-  it.each(["3|000000:", "0|00000:", "0|0000000:", "0|000000", "0|00000-:"])("rejects %s", (value) => {
-    expect(() => parseRank(value)).toThrow(InvalidRankError);
-  });
+  it.each(["3|000000:", "0|00000:", "0|0000000:", "0|000000", "0|00000-:"])(
+    "rejects %s",
+    (value) => {
+      expect(() => parseRank(value)).toThrow(InvalidRankError);
+    },
+  );
 });
 
 describe("canonical form (trailing zeros)", () => {
@@ -322,7 +328,9 @@ describe("maxMinorLength option", () => {
   });
 
   it("applies to ranksBetween too", () => {
-    expect(() => ranksBetween(2, "0|000000:", "0|000001:", { maxMinorLength: 0 })).toThrow(LexorankError);
+    expect(() => ranksBetween(2, "0|000000:", "0|000001:", { maxMinorLength: 0 })).toThrow(
+      LexorankError,
+    );
   });
 
   it.each([0, -1, 2.5, Number.NaN])("rejects an invalid limit of %s", (limit) => {

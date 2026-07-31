@@ -51,7 +51,12 @@ export function computeRanks(
   if (prev === null) {
     low = { bucket: next?.bucket ?? 0, major: LOWEST_MAJOR, minor: ":" };
 
-    if (next !== null && low.bucket === next.bucket && next.major === LOWEST_MAJOR && next.minor === ":") {
+    if (
+      next !== null &&
+      low.bucket === next.bucket &&
+      next.major === LOWEST_MAJOR &&
+      next.minor === ":"
+    ) {
       if (low.bucket <= 0) {
         throw new RankSpaceExhaustedError(
           `Nothing sorts below ${JSON.stringify(next.toString())}, the lowest ` +
@@ -151,7 +156,12 @@ function majorSpaceRanks(count: number, lowIn: Bound, highIn: Bound): Position[]
 }
 
 /** Searches the minor space, up to `maxMinorLength` digits. */
-function minorSpaceRanks(count: number, lowIn: Bound, highIn: Bound, maxMinorLength: number): Position[] {
+function minorSpaceRanks(
+  count: number,
+  lowIn: Bound,
+  highIn: Bound,
+  maxMinorLength: number,
+): Position[] {
   const low = { ...lowIn };
   const high = { ...highIn };
 

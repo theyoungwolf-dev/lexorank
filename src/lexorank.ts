@@ -151,7 +151,9 @@ function assertWithinBounds(results: string[], prev: string, next: string): void
 function subdivide(low: string, high: string, count: number, limit: number): string[] {
   const [prevPosition, nextPosition] = parseBounds(low, high);
 
-  const results = computeRanks(count, prevPosition, nextPosition, limit).map((position) => position.toString());
+  const results = computeRanks(count, prevPosition, nextPosition, limit).map((position) =>
+    position.toString(),
+  );
 
   assertWithinBounds(results, low, high);
 
@@ -250,7 +252,12 @@ export function rankBetween(prev: RankInput, next: RankInput, options?: RankOpti
  * @throws {RankOrderError} if `prev` sorts after `next`.
  * @throws {DuplicateRankError} if both bounds are the same rank.
  */
-export function ranksBetween(count: number, prev: RankInput, next: RankInput, options?: RankOptions): string[] {
+export function ranksBetween(
+  count: number,
+  prev: RankInput,
+  next: RankInput,
+  options?: RankOptions,
+): string[] {
   if (!Number.isInteger(count) || count < 1 || count > MAX_BATCH_SIZE) {
     throw new BatchSizeError(count, MAX_BATCH_SIZE);
   }
@@ -330,7 +337,9 @@ export function ranksBetween(count: number, prev: RankInput, next: RankInput, op
  */
 export function rebalance(count: number): string[] {
   if (!Number.isInteger(count) || count < 0) {
-    throw new LexorankError(`rebalance count must be a non-negative integer, but received ${count}.`);
+    throw new LexorankError(
+      `rebalance count must be a non-negative integer, but received ${count}.`,
+    );
   }
 
   if (count === 0) {

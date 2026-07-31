@@ -72,7 +72,8 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     } catch (error) {
       if (isInvariantFailure(error)) {
         violations++;
-        if (samples.length < 5) samples.push(`${low} | ${high} -> ${error.produced} (invariant guard)`);
+        if (samples.length < 5)
+          samples.push(`${low} | ${high} -> ${error.produced} (invariant guard)`);
         checked++;
       }
       continue; // any other rejection is a valid outcome
@@ -85,7 +86,11 @@ console.log(`property check (${ITERATIONS} iterations, seed ${process.env.SEED ?
     }
   }
 
-  report("ordering invariant on random pairs", violations === 0, `${checked} checked, ${violations} violations`);
+  report(
+    "ordering invariant on random pairs",
+    violations === 0,
+    `${checked} checked, ${violations} violations`,
+  );
   for (const s of samples) console.log(`        ${s}`);
 }
 
