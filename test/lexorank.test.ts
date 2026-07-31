@@ -18,6 +18,7 @@ import {
   rankBefore,
   rankBetween,
   ranksBetween,
+  rebalance,
 } from "../src/index.js";
 import { describe, expect, it } from "vitest";
 
@@ -431,6 +432,70 @@ describe("minorLength", () => {
 
     const deepest = Math.max(...board.map((r) => minorLength(r)));
     expect(deepest).toBeLessThan(8);
+  });
+});
+
+describe("rebalance", () => {
+  it("returns nothing for an empty list", () => {
+    expect(rebalance(0)).toEqual([]);
+  });
+
+  it("starts a single-item list at firstRank", () => {
+    expect(rebalance(1)).toEqual([firstRank()]);
+  });
+
+  it.each([1, 2, 10, 500, 5000])("returns %i clean, ordered, unique ranks", (count) => {
+    const out = rebalance(count);
+    expect(out).toHaveLength(count);
+    expect([...out].sort()).toEqual(out);
+    expect(new Set(out).size).toBe(count);
+    for (const rank of out) {
+      expect(isValidRank(rank)).toBe(true);
+      expect(minorLength(rank)).toBe(0);
+    }
+  });
+
+  it("clears the fractional depth of a degraded list", () => {
+    const low = "0|000000:";
+    let high = "0|000001:";
+    for (let i = 0; i < 400; i++) high = rankBetween(low, high);
+    expect(minorLength(high)).toBeGreaterThan(50);
+
+    const fresh = rebalance(2);
+    for (const rank of fresh) expect(minorLength(rank)).toBe(0);
+  });
+
+  it("restores room between neighbours", () => {
+    const [first, second] = rebalance(2) as [string, string];
+    // A degraded pair has no whole character left between it; a rebalanced one
+    // should absorb many inserts before touching the fraction again.
+    let high = second;
+    let absorbed = 0;
+    while (absorbed < 10 && minorLength(high) === 0) {
+      high = rankBetween(first, high);
+      if (minorLength(high) === 0) absorbed++;
+    }
+    expect(absorbed).toBeGreaterThanOrEqual(10);
+  });
+
+  it("produces the same spacing as building a list by hand", () => {
+    const built = [firstRank()];
+    for (let i = 0; i < 9; i++) built.push(rankAfter(built[built.length - 1] as string));
+    expect(rebalance(10)).toEqual(built);
+  });
+
+  it.each([-1, 1.5, Number.NaN])("rejects an invalid count of %s", (count) => {
+    expect(() => rebalance(count)).toThrow(LexorankError);
+  });
+
+  it("refuses a list too large to place cleanly", () => {
+    expect(() => rebalance(200000)).toThrow(RankSpaceExhaustedError);
+  });
+
+  it("is what ranksBetween falls back to when both bounds are open", () => {
+    for (const count of [1, 5, MAX_BATCH_SIZE]) {
+      expect(ranksBetween(count, null, null)).toEqual(rebalance(count));
+    }
   });
 });
 

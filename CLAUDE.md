@@ -29,7 +29,7 @@ These look like cleanup opportunities. They are not. Each encodes a decision tha
 
 **`MAX_BATCH_SIZE` is 60, derived not arbitrary.** A batch needs one whole character per item and the widest gap spans 61 steps, so 61 items never fit at any depth.
 
-**Identical bounds throw `DuplicateRankError`.** Two rows sharing a rank have no order between them, so nothing can go between them. Returning a value that sorts after both is a silent misplacement. This is deliberate - do not soften it to "return something reasonable".
+**`rebalance(count)` takes a count, not the old ranks.** A rebalance discards the previous values entirely; only position in the sorted order carries over. It deliberately reuses `firstRank` + `rankAfter` spacing so a rebalanced list is identical to a freshly built one. Do not "improve" it by spreading items across the whole space - that was measured and it cuts the runway past each end from ~27,900 appends to ~56.
 
 ## Layout
 

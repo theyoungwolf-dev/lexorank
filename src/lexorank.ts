@@ -261,14 +261,9 @@ export function ranksBetween(count: number, prev: RankInput, next: RankInput, op
 
   // Mirrors rankBetween: an open bound steps, a closed pair subdivides. Keeping
   // these aligned is what makes ranksBetween(1, a, b) === rankBetween(a, b).
+  // Seeding a list from scratch is exactly a rebalance of that size.
   if (low === "" && high === "") {
-    const results = [firstRank()];
-
-    while (results.length < count) {
-      results.push(rankAfter(results[results.length - 1] as string, options));
-    }
-
-    return results;
+    return rebalance(count);
   }
 
   if (high === "") {
@@ -297,6 +292,73 @@ export function ranksBetween(count: number, prev: RankInput, next: RankInput, op
   }
 
   return subdivide(low, high, count, limit);
+}
+
+/**
+ * Produces `count` fresh ranks: ascending, evenly spaced, and free of any
+ * fractional depth.
+ *
+ * This is the remedy for a list that has degraded - every
+ * {@link RankSpaceExhaustedError} and {@link DuplicateRankError} points here.
+ * It is also how you seed a new list, since "assign well-spaced ranks to N
+ * items" is the same operation either way.
+ *
+ * It reads nothing from the existing ranks, because a rebalance discards them:
+ * position in the sorted list is the only thing that carries over. Fetch the
+ * rows in rank order, ask for as many ranks as you have rows, and zip them:
+ *
+ * ```ts
+ * const tasks = await db.task.findMany({ where: { columnId }, orderBy: { rank: "asc" } });
+ * const fresh = rebalance(tasks.length);
+ *
+ * await db.$transaction(
+ *   tasks.map((task, i) => db.task.update({ where: { id: task.id }, data: { rank: fresh[i] } })),
+ * );
+ * ```
+ *
+ * Spacing matches a list built with {@link firstRank} and {@link rankAfter}, so
+ * a rebalanced list is indistinguishable from a freshly built one: the same
+ * structural gap between neighbours, and the same runway at both ends. Spreading
+ * the items across the whole space instead would buy slightly more room between
+ * neighbours at the cost of nearly all the room beyond the ends, which is a bad
+ * trade - appending is the more common operation.
+ *
+ * @throws {LexorankError} if `count` is not a non-negative integer.
+ * @throws {RankSpaceExhaustedError} if the list is too large to place without
+ *   minor depth. The ceiling is in the tens of thousands; a single ordered
+ *   list that big has outgrown this approach.
+ */
+export function rebalance(count: number): string[] {
+  if (!Number.isInteger(count) || count < 0) {
+    throw new LexorankError(`rebalance count must be a non-negative integer, but received ${count}.`);
+  }
+
+  if (count === 0) {
+    return [];
+  }
+
+  const results = [firstRank()];
+
+  while (results.length < count) {
+    const previous = results[results.length - 1] as string;
+    const next = rankAfter(previous);
+
+    // Falling into the minor means the integer space ran out mid-rebalance,
+    // which would defeat the point: the output must be uniformly clean.
+    if (minorLength(next) > 0) {
+      throw new RankSpaceExhaustedError(
+        `Cannot place ${count} items without minor depth; the integer space ` +
+          `ran out after ${results.length}. A single ordered list this large has ` +
+          "outgrown a flat rank space - partition it before rebalancing.",
+      );
+    }
+
+    results.push(next);
+  }
+
+  assertWithinBounds(results, "", "");
+
+  return results;
 }
 
 /**

@@ -27,6 +27,7 @@ export {
   rankBefore,
   rankBetween,
   ranksBetween,
+  rebalance,
 } from "./lexorank.js";
 export { Position } from "./position.js";
 export { hasTrailingZero, isValidRank, LEXORANK_REGEX } from "./validator.js";

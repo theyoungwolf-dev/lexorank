@@ -55,20 +55,21 @@ This matters more than it looks. Repeatedly moving items to the top of a column 
 
 ## API
 
-| Export                            | Description                                            |
-| --------------------------------- | ------------------------------------------------------ |
-| `firstRank()`                     | The initial rank for an empty list.                    |
-| `rankBetween(prev, next)`         | A rank sorting strictly between two bounds.            |
-| `rankAfter(to)`                   | Next rank above `to`, fixed step. Append only.         |
-| `rankBefore(to)`                  | Next rank below `to`, fixed step. Prepend only.        |
-| `ranksBetween(count, prev, next)` | `count` ranks between two bounds (1-`MAX_BATCH_SIZE`). |
-| `compareRanks(a, b)`              | Comparator for `Array.prototype.sort`.                 |
-| `minorLength(rank)`               | Digits in the minor component. A list-health signal.   |
-| `parseRank(value)`                | Parse into a `Position`, or `null` for an open bound.  |
-| `isValidRank(value)`              | True for exactly the values this API accepts.          |
-| `generateEntropy()`               | Random 3-character Base-62 string.                     |
-| `Position`                        | Immutable `{ bucket, major, minor }` value object.     |
-| `MAX_MINOR_LENGTH`                | Default minor ceiling (128).                           |
+| Export                            | Description                                                  |
+| --------------------------------- | ------------------------------------------------------------ |
+| `firstRank()`                     | The initial rank for an empty list.                          |
+| `rankBetween(prev, next)`         | A rank sorting strictly between two bounds.                  |
+| `rankAfter(to)`                   | Next rank above `to`, fixed step. Append only.               |
+| `rankBefore(to)`                  | Next rank below `to`, fixed step. Prepend only.              |
+| `ranksBetween(count, prev, next)` | `count` ranks between two bounds (1-`MAX_BATCH_SIZE`).       |
+| `compareRanks(a, b)`              | Comparator for `Array.prototype.sort`.                       |
+| `rebalance(count)`                | `count` fresh, evenly spaced ranks. Repairs or seeds a list. |
+| `minorLength(rank)`               | Digits in the minor component. A list-health signal.         |
+| `parseRank(value)`                | Parse into a `Position`, or `null` for an open bound.        |
+| `isValidRank(value)`              | True for exactly the values this API accepts.                |
+| `generateEntropy()`               | Random 3-character Base-62 string.                           |
+| `Position`                        | Immutable `{ bucket, major, minor }` value object.           |
+| `MAX_MINOR_LENGTH`                | Default minor ceiling (128).                                 |
 
 Every bound accepts `string | null | undefined`; `null`, `undefined` and `""` all mean "no bound on this side".
 
@@ -113,6 +114,23 @@ Exceeding the limit raises `RankSpaceExhaustedError`. Tune it per call when your
 rankBetween(before, after, { maxminorLength: 64 });
 ```
 
+### Rebalancing
+
+`rebalance(count)` returns fresh, evenly spaced ranks with no fractional depth. It is the remedy every `RankSpaceExhaustedError` and `DuplicateRankError` points at, and equally the way to seed a new list - assigning well-spaced ranks to N items is one operation either way.
+
+It reads nothing from the existing ranks, because a rebalance discards them: position in the sorted order is all that carries over. Fetch in rank order, ask for as many ranks as you have rows, and zip:
+
+```ts
+const tasks = await db.task.findMany({ where: { columnId }, orderBy: { rank: "asc" } });
+const fresh = rebalance(tasks.length);
+
+await db.$transaction(tasks.map((task, i) => db.task.update({ where: { id: task.id }, data: { rank: fresh[i] } })));
+```
+
+Spacing matches a list built with `firstRank()` and `rankAfter()`, so a rebalanced list is indistinguishable from a freshly built one. Spreading items across the entire space instead would buy under 2x more room between neighbours while cutting the runway past each end from roughly 27,900 appends to about 56 - a bad trade, since appending is the more common operation.
+
+The ceiling is in the tens of thousands of items; beyond that `rebalance` throws rather than quietly emitting fractions, because a single ordered list that large has outgrown a flat rank space.
+
 ### Detecting it before it throws
 
 Treat the limit as a tripwire, not a budget. `minorLength` lets you spot a degrading list while it is still cheap to fix:
@@ -124,6 +142,8 @@ if (deepest > 24) {
   await rebalanceColumn(columnId); // background, before any user hits the wall
 }
 ```
+
+where your `rebalanceColumn` is the `rebalance(count)` zip shown above.
 
 Ordinary ranks are 9-13 bytes with a minor of zero, so any column whose deepest rank runs to a couple of dozen digits is worth rebalancing whatever limit you have set. Rebalancing resets every minor to zero and restores the full structural gap.
 
