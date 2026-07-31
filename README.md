@@ -3,7 +3,7 @@
 Ordered ranking for drag-and-drop lists - the technique behind reorderable boards in tools like Jira. Insert, move and reorder items using stable string keys that sort correctly on their own, without renumbering their neighbours.
 
 - **Zero dependencies**, ESM + CJS, fully typed
-- **Effectively infinite precision** - a fixed-width integer component backed by an unbounded Base-62 minor
+- **Effectively infinite precision** - a fixed-width integer component backed by an unbounded Base-62 minor, subject to `MAX_MINOR_LENGTH`
 - **One unconditional guarantee** - `prev < result < next`, re-checked on every call
 
 ## Install
@@ -55,21 +55,25 @@ This matters more than it looks. Repeatedly moving items to the top of a column 
 
 ## API
 
-| Export                            | Description                                                  |
-| --------------------------------- | ------------------------------------------------------------ |
-| `firstRank()`                     | The initial rank for an empty list.                          |
-| `rankBetween(prev, next)`         | A rank sorting strictly between two bounds.                  |
-| `rankAfter(to)`                   | Next rank above `to`, fixed step. Append only.               |
-| `rankBefore(to)`                  | Next rank below `to`, fixed step. Prepend only.              |
-| `ranksBetween(count, prev, next)` | `count` ranks between two bounds (1-`MAX_BATCH_SIZE`).       |
-| `compareRanks(a, b)`              | Comparator for `Array.prototype.sort`.                       |
-| `rebalance(count)`                | `count` fresh, evenly spaced ranks. Repairs or seeds a list. |
-| `minorLength(rank)`               | Digits in the minor component. A list-health signal.         |
-| `parseRank(value)`                | Parse into a `Position`, or `null` for an open bound.        |
-| `isValidRank(value)`              | True for exactly the values this API accepts.                |
-| `generateEntropy()`               | Random 3-character Base-62 string.                           |
-| `Position`                        | Immutable `{ bucket, major, minor }` value object.           |
-| `MAX_MINOR_LENGTH`                | Default minor ceiling (128).                                 |
+| Export                                      | Description                                                  |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `firstRank()`                               | The initial rank for an empty list.                          |
+| `rankBetween(prev, next, options?)`         | A rank sorting strictly between two bounds.                  |
+| `rankAfter(to, options?)`                   | Next rank above `to`, fixed step. Append only.               |
+| `rankBefore(to, options?)`                  | Next rank below `to`, fixed step. Prepend only.              |
+| `ranksBetween(count, prev, next, options?)` | `count` ranks between two bounds (1 to `MAX_BATCH_SIZE`).    |
+| `compareRanks(a, b)`                        | Comparator for `Array.prototype.sort`.                       |
+| `rebalance(count)`                          | `count` fresh, evenly spaced ranks. Repairs or seeds a list. |
+| `minorLength(rank)`                         | Digits in the minor component. A list-health signal.         |
+| `parseRank(value)`                          | Parse into a `Position`, or `null` for an open bound.        |
+| `isValidRank(value)`                        | True for exactly the values this API accepts.                |
+| `generateEntropy()`                         | Random 3-character Base-62 string.                           |
+| `hasTrailingZero()`                         | Checks if minor is non-canonical because it ends in "0".     |
+| `Position`                                  | Immutable `{ bucket, major, minor }` value object.           |
+| `MAX_MINOR_LENGTH`                          | Default minor ceiling (128).                                 |
+| `MAX_BUCKET`                                | Highest valid bucket (2).                                    |
+| `LEXORANK_REGEX`                            | Approves LexoRank shape: `<bucket>\|<major>[:<minor>]`       |
+| `MAX_BATCH_SIZE`                            | Largest batch that can ever be placed in a single call (60). |
 
 Every bound accepts `string | null | undefined`; `null`, `undefined` and `""` all mean "no bound on this side".
 
@@ -99,9 +103,9 @@ Ranks between two neighbours are found by subdividing the gap. Subdivision is no
 | Appending to the end                       | 0 digits            |
 | **Always between the same two neighbours** | grows without bound |
 
-Only the last pattern grows. Past the structural runway the minor gains roughly one digit per five insertions, so the number of consecutive same-position inserts a list tolerates is about **five times `maxminorLength`**:
+Only the last pattern grows. Past the structural runway the minor gains roughly one digit per five insertions, so the number of consecutive same-position inserts a list tolerates is about **five times `maxMinorLength`**:
 
-| `maxminorLength`  | Inserts before it throws | Widest row    |
+| `maxMinorLength`  | Inserts before it throws | Widest row    |
 | ----------------- | ------------------------ | ------------- |
 | 32                | ~160                     | 41 bytes      |
 | 64                | ~320                     | 73 bytes      |
@@ -111,12 +115,12 @@ Only the last pattern grows. Past the structural runway the minor gains roughly 
 Exceeding the limit raises `RankSpaceExhaustedError`. Tune it per call when your storage or rebalance cadence calls for something different:
 
 ```ts
-rankBetween(before, after, { maxminorLength: 64 });
+rankBetween(before, after, { maxMinorLength: 64 });
 ```
 
 ### Rebalancing
 
-`rebalance(count)` returns fresh, evenly spaced ranks with no fractional depth. It is the remedy every `RankSpaceExhaustedError` and `DuplicateRankError` points at, and equally the way to seed a new list - assigning well-spaced ranks to N items is one operation either way.
+`rebalance(count)` returns fresh, evenly spaced ranks with no minor depth. It is the remedy every `RankSpaceExhaustedError` and `DuplicateRankError` points at, and equally the way to seed a new list - assigning well-spaced ranks to N items is one operation either way.
 
 It reads nothing from the existing ranks, because a rebalance discards them: position in the sorted order is all that carries over. Fetch in rank order, ask for as many ranks as you have rows, and zip:
 
@@ -129,7 +133,7 @@ await db.$transaction(tasks.map((task, i) => db.task.update({ where: { id: task.
 
 Spacing matches a list built with `firstRank()` and `rankAfter()`, so a rebalanced list is indistinguishable from a freshly built one. Spreading items across the entire space instead would buy under 2x more room between neighbours while cutting the runway past each end from roughly 27,900 appends to about 56 - a bad trade, since appending is the more common operation.
 
-The ceiling is in the tens of thousands of items; beyond that `rebalance` throws rather than quietly emitting fractions, because a single ordered list that large has outgrown a flat rank space.
+The ceiling is in the tens of thousands of items; beyond that `rebalance` throws rather than quietly emitting minors, because a single ordered list that large has outgrown a flat rank space.
 
 ### Detecting it before it throws
 
