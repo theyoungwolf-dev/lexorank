@@ -1,5 +1,10 @@
 <div align="center">
-  <h1>@theyoungwolf/lexorank</h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)"
+            srcset="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/logo-lockup-dark-800.png">
+    <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/logo-lockup-light-800.png"
+         alt="@theyoungwolf/lexorank" width="400">
+  </picture>
   <p><b>Ordered string ranks for drag-and-drop lists</b></p>
   <p>
     Insert, move and reorder items using stable keys that sort correctly on their own -
@@ -17,6 +22,11 @@
 [![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square)](https://www.npmjs.com/package/@theyoungwolf/lexorank)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
+</div>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/writes-comparison.png"
+       alt="Integer positions rewrite three rows; string ranks rewrite one" width="680">
 </div>
 
 ## Table of contents
@@ -378,10 +388,10 @@ try {
 
 ## Rank format
 
-```
-<bucket>|<major>[:<minor>]
-    0    |  UUUUUU  :  U
-```
+<div align="center">
+  <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/rank-anatomy.png"
+       alt="Rank Anatomy consisting of bucket, major and unbounded minor" width="680">
+</div>
 
 - **bucket** (0-2) - extra headroom; `rankAfter` / `rankBefore` roll into the neighbouring bucket when the integer space runs out
 - **major** - fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
