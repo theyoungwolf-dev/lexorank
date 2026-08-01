@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/theyoungwolf-dev/lexorank/issues"
   },
-  "homepage": "https://www.theyoungwolf.dev/projects/lexorank",
+  "homepage": "https://theyoungwolf.dev/projects/lexorank",
   "type": "module",
   "exports": {
     ".": {
