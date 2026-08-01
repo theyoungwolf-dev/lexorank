@@ -1,5 +1,11 @@
 # @theyoungwolf/lexorank
 
+## 0.1.1
+
+### Patch Changes
+
+- d93b8b6: Add logo and illustrations to the README. No functional changes.
+
 ## 0.1.0
 
 ### Minor Changes
