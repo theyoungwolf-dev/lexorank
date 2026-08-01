@@ -3,37 +3,170 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>lexorank — interactive demo</title>
+    <title>@theyoungwolf/lexorank - Live Demo</title>
+    <meta
+      name="description"
+      content="Interactive demo of @theyoungwolf/lexorank: reorder a list with one write, at any size."
+    />
+
+    <meta property="og:title" content="lexorank - live demo" />
+    <meta
+      property="og:description"
+      content="Drag a card and watch the rank change. One row written, however long the list."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lexorank.theyoungwolf.dev/" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/hero-1200x675.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/mark.svg" />
+
     <style>
+      :root {
+        --ink: #1c1b22;
+        --muted: #6b6880;
+        --violet: #534ab7;
+        --line: #e4e3ec;
+        --canvas: #fafafc;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: system-ui, sans-serif;
-        max-width: 940px;
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--ink);
+        background: var(--canvas);
+        line-height: 1.55;
+        padding: 44px 20px 72px;
+      }
+      main {
+        max-width: 960px;
         margin: 0 auto;
-        padding: 32px 20px;
-        background: #fff;
-        color: #1c1b22;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .brand img {
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
+      }
+      .brand b {
+        font-size: 16px;
+        font-weight: 600;
       }
       h1 {
-        font-size: 24px;
-        letter-spacing: -0.02em;
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+        margin: 0 0 10px;
       }
-      /* deliberately hostile host styles, to prove the shadow root isolates */
-      div {
-        border: 3px dashed red;
+      .lede {
+        font-size: 16px;
+        color: var(--muted);
+        margin: 0 0 8px;
+        max-width: 60ch;
       }
-      button {
-        background: lime !important;
+      .links {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 22px 0 30px;
+      }
+      .links a {
+        font-size: 13.5px;
+        text-decoration: none;
+        color: var(--ink);
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 13px;
+        transition: 0.12s;
+      }
+      .links a:hover {
+        border-color: var(--violet);
+        color: var(--violet);
+      }
+      .links a.primary {
+        background: var(--violet);
+        border-color: var(--violet);
+        color: #fff;
+      }
+      .links a.primary:hover {
+        background: #443ba3;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        background: #eeedfe;
+        color: #3b3488;
+        padding: 2px 6px;
+        border-radius: 5px;
+      }
+      .install {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: #26215c;
+        color: #cecbf6;
+        padding: 12px 15px;
+        border-radius: 9px;
+        margin: 0 0 30px;
+        overflow-x: auto;
+      }
+      footer {
+        margin-top: 34px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      footer a {
+        color: var(--violet);
+      }
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 24px;
+        }
+        body {
+          padding: 28px 16px 52px;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>lexorank demo</h1>
-    <p>
-      The host page below sets <code>div{border:3px dashed red}</code> and <code>button{background:lime}</code>. None of
-      it should reach inside the widget.
-    </p>
+    <main>
+      <div class="brand">
+        <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/mark-128.png" alt="" />
+        <b>@theyoungwolf/lexorank</b>
+      </div>
 
-    <lexorank-demo></lexorank-demo>
+      <h1>Reorder a list without renumbering it</h1>
+      <p class="lede">
+        Every card below stores a rank string. Drag one and exactly one row changes - whether the list holds five items
+        or five thousand.
+      </p>
+
+      <div class="links">
+        <a class="primary" href="https://www.npmjs.com/package/@theyoungwolf/lexorank">npm</a>
+        <a href="https://github.com/theyoungwolf-dev/lexorank">GitHub</a>
+        <a href="https://www.theyoungwolf.dev/projects/lexorank">Read the write-up</a>
+      </div>
+
+      <p class="install">npm install @theyoungwolf/lexorank</p>
+
+      <lexorank-demo></lexorank-demo>
+
+      <footer>
+        Zero dependencies · ESM + CJS · fully typed. Embed this demo on your own page with
+        <code>&lt;lexorank-demo&gt;</code> - see the
+        <a href="https://github.com/theyoungwolf-dev/lexorank/tree/main/demo">demo README</a>.
+      </footer>
+    </main>
 
     <script type="module" src="./widget.js"></script>
   </body>
