@@ -57,6 +57,14 @@ Everything renders in a shadow root. Host-page CSS cannot reach in and the
 widget's styles cannot leak out - verified against a host page that sets
 `div{border:3px dashed red}` and `button{background:lime}`.
 
+One subtlety worth knowing if you fork this: rules in the host page that match
+the **host element itself** beat `:host` rules regardless of specificity, so a
+global reset such as `*{margin:0;padding:0}` (Tailwind preflight, most CSS
+resets) will strip padding declared on `:host`. The widget therefore keeps
+`:host` to `display:block` only and applies the whole visual shell - padding,
+border, radius, background, typography - to an inner `.root` element inside the
+shadow root, where outer CSS genuinely cannot reach.
+
 Layout responds via `@container`, not `@media`, so it adapts to the width of the
 slot it is placed in rather than the width of the browser window. Dropping it into
 a narrow sidebar works without configuration.

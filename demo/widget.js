@@ -18,23 +18,31 @@ const DEFAULT_LIB = "https://esm.sh/@theyoungwolf/lexorank@^0.1";
 const TITLES = ["Design the schema", "Build the API", "Write the tests", "Ship to staging", "Update the docs"];
 
 const CSS = `
-:host{
+/* Only layout-neutral things live on :host. Any rule in the host page that
+   matches the host element -- including a global star-selector padding reset --
+   beats :host regardless of specificity, so the visual shell is applied to
+   .root instead, which lives inside the shadow root and is unreachable. */
+:host{display:block}
+:host([hidden]){display:none}
+
+.root{
   --indigo:#26215C; --violet:#534AB7; --violet-soft:#EEEDFE; --violet-line:#CECBF6;
   --teal:#0F6E56; --teal-bright:#1D9E75; --teal-soft:#E4F6EF; --red:#A32D2D;
   --ink:#1C1B22; --muted:#6B6880; --line:#E4E3EC; --surface:#fff; --canvas:#F7F7FB;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  display:block; font-family:var(--sans); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.5; color:var(--ink); text-align:left;
   background:var(--canvas); border:1px solid var(--line); border-radius:14px; padding:18px;
   container-type:inline-size;
 }
-*{box-sizing:border-box}
+.root *{box-sizing:border-box; margin:0; padding:0}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
 h2{font-size:16px;margin:0;font-weight:600;letter-spacing:-.01em}
 .sub{font-size:13px;color:var(--muted);margin:3px 0 15px}
 .grid{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
 @container (max-width:700px){ .grid{grid-template-columns:1fr} }
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px}
+h2,p{margin:0}
 .lbl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
 
 .board-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
@@ -147,10 +155,13 @@ const HTML = `
 class LexorankDemo extends HTMLElement {
   connectedCallback() {
     if (this.shadowRoot) return;
-    const root = this.attachShadow({ mode: "open" });
+    const shadow = this.attachShadow({ mode: "open" });
     const style = document.createElement("style");
     style.textContent = CSS;
-    root.append(style);
+
+    const root = document.createElement("div");
+    root.className = "root";
+    shadow.append(style, root);
 
     const state = document.createElement("div");
     state.className = "state";
@@ -161,7 +172,7 @@ class LexorankDemo extends HTMLElement {
     import(/* webpackIgnore: true */ /* @vite-ignore */ url)
       .then((lib) => {
         state.remove();
-        this.#boot(root, lib);
+        this.#boot(shadow, root, lib);
       })
       .catch(() => {
         state.innerHTML =
@@ -170,14 +181,12 @@ class LexorankDemo extends HTMLElement {
       });
   }
 
-  #boot(root, lex) {
-    const wrap = document.createElement("div");
-    wrap.innerHTML = HTML;
-    root.append(wrap);
+  #boot(shadow, root, lex) {
+    root.innerHTML = HTML;
 
     const { firstRank, rankAfter, rankBetween, compareRanks, minorLength, rebalance, MAX_MINOR_LENGTH } = lex;
     const MAXD = MAX_MINOR_LENGTH ?? 128;
-    const $ = (id) => root.getElementById(id);
+    const $ = (id) => shadow.getElementById(id);
     const listEl = $("list");
     const scroller = $("scroller");
 
