@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>lexorank — interactive demo</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 940px;
+        margin: 0 auto;
+        padding: 32px 20px;
+        background: #fff;
+        color: #1c1b22;
+      }
+      h1 {
+        font-size: 24px;
+        letter-spacing: -0.02em;
+      }
+      /* deliberately hostile host styles, to prove the shadow root isolates */
+      div {
+        border: 3px dashed red;
+      }
+      button {
+        background: lime !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>lexorank demo</h1>
+    <p>
+      The host page below sets <code>div{border:3px dashed red}</code> and <code>button{background:lime}</code>. None of
+      it should reach inside the widget.
+    </p>
+
+    <lexorank-demo></lexorank-demo>
+
+    <script type="module" src="./widget.js"></script>
+  </body>
+</html>
