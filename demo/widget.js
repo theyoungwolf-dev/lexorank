@@ -56,14 +56,18 @@ const CSS = `
   padding: var(--lexorank-padding, 18px);
   container-type:inline-size;
 }
-.root *{box-sizing:border-box; margin:0; padding:0}
+/* box-sizing only. A blanket padding reset here would be specificity (0,1,0)
+   and would silently outrank element-selector rules such as the button padding
+   below. The host page's own reset cannot cross the shadow boundary, so the
+   only thing to normalise is the UA default margin on headings and lists. */
+.root, .root *{box-sizing:border-box}
+h2,p,ul,ol{margin:0;padding:0}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
 h2{font-size:16px;margin:0;font-weight:600;letter-spacing:-.01em}
 .sub{font-size:13px;color:var(--muted);margin:3px 0 15px}
 .grid{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
 @container (max-width:700px){ .grid{grid-template-columns:1fr} }
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px}
-h2,p{margin:0}
 .lbl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
 
 .board-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
@@ -180,6 +184,7 @@ class LexorankDemo extends HTMLElement {
     const style = document.createElement("style");
     style.textContent = CSS;
 
+    // Everything visual hangs off .root, not the host element.
     const root = document.createElement("div");
     root.className = "root";
     shadow.append(style, root);
