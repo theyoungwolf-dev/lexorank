@@ -31,6 +31,48 @@ releases flow through automatically. Override it per-instance:
 Widen the range and the demo picks up new releases on its own. Narrow it before a
 major version lands, so an API change can't break the embed on someone else's site.
 
+## Theming
+
+The defaults stand alone - the two-line embed above needs no styling. When you do
+want to match a host design, set custom properties on the element. They inherit
+through the shadow boundary, so they reach the internals:
+
+```html
+<lexorank-demo style="--lexorank-accent:#0EA5E9; --lexorank-bg:transparent"></lexorank-demo>
+```
+
+```jsx
+<lexorank-demo
+  style={{
+    "--lexorank-accent": "var(--brand)",
+    "--lexorank-surface": "var(--card)",
+    "--lexorank-radius": "6px",
+  }}
+/>
+```
+
+| Property                 | Default      | Controls                         |
+| ------------------------ | ------------ | -------------------------------- |
+| `--lexorank-accent`      | `#534AB7`    | Buttons, rank chips, focus rings |
+| `--lexorank-accent-soft` | `#EEEDFE`    | Rank chip background             |
+| `--lexorank-accent-line` | `#CECBF6`    | Card hover border                |
+| `--lexorank-bg`          | `#F7F7FB`    | Outer background                 |
+| `--lexorank-surface`     | `#fff`       | Cards and panels                 |
+| `--lexorank-text`        | `#1C1B22`    | Body text                        |
+| `--lexorank-muted`       | `#6B6880`    | Labels and captions              |
+| `--lexorank-border`      | `#E4E3EC`    | All borders                      |
+| `--lexorank-positive`    | `#1D9E75`    | The "rank strings" counter       |
+| `--lexorank-negative`    | `#A32D2D`    | The "integer positions" counter  |
+| `--lexorank-font`        | system stack | UI typeface                      |
+| `--lexorank-mono`        | system mono  | Rank strings and the call log    |
+| `--lexorank-radius`      | `14px`       | Outer corner radius              |
+| `--lexorank-padding`     | `18px`       | Outer padding                    |
+| `--lexorank-list-height` | `336px`      | Height of the scrolling board    |
+
+Setting `padding` or `background` directly on the element instead will not work
+the way you expect: those apply to the host box, outside the widget's own shell,
+and cannot reach anything inside the shadow root. Use the properties above.
+
 ## Bounded height
 
 The board scrolls inside a fixed region, so the widget never grows past roughly

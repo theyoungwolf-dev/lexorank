@@ -25,14 +25,35 @@ const CSS = `
 :host{display:block}
 :host([hidden]){display:none}
 
+/* Every public knob is a --lexorank-* custom property with a built-in default.
+   Custom properties inherit through the shadow boundary, so the host page can
+   set them on the element and reach the internals:
+
+     <lexorank-demo style="--lexorank-accent:#0EA5E9;--lexorank-bg:transparent">
+
+   The defaults stand alone, so the plain two-line embed still looks right. */
 .root{
-  --indigo:#26215C; --violet:#534AB7; --violet-soft:#EEEDFE; --violet-line:#CECBF6;
-  --teal:#0F6E56; --teal-bright:#1D9E75; --teal-soft:#E4F6EF; --red:#A32D2D;
-  --ink:#1C1B22; --muted:#6B6880; --line:#E4E3EC; --surface:#fff; --canvas:#F7F7FB;
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --violet: var(--lexorank-accent, #534AB7);
+  --canvas: var(--lexorank-bg, #F7F7FB);
+  --surface: var(--lexorank-surface, #fff);
+  --ink:    var(--lexorank-text, #1C1B22);
+  --muted:  var(--lexorank-muted, #6B6880);
+  --line:   var(--lexorank-border, #E4E3EC);
+  --teal-bright: var(--lexorank-positive, #1D9E75);
+  --red:    var(--lexorank-negative, #A32D2D);
+  --sans:   var(--lexorank-font, system-ui,-apple-system,"Segoe UI",Roboto,sans-serif);
+  --mono:   var(--lexorank-mono, ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace);
+
+  /* derived from the accent, so recolouring needs one property, not five */
+  --violet-soft: var(--lexorank-accent-soft, #EEEDFE);
+  --violet-line: var(--lexorank-accent-line, #CECBF6);
+  --teal:#0F6E56; --teal-soft:#E4F6EF; --indigo:#26215C;
+
   font-family:var(--sans); font-size:16px; line-height:1.5; color:var(--ink); text-align:left;
-  background:var(--canvas); border:1px solid var(--line); border-radius:14px; padding:18px;
+  background:var(--canvas);
+  border:1px solid var(--line);
+  border-radius: var(--lexorank-radius, 14px);
+  padding: var(--lexorank-padding, 18px);
   container-type:inline-size;
 }
 .root *{box-sizing:border-box; margin:0; padding:0}
@@ -48,7 +69,7 @@ h2,p{margin:0}
 .board-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
 .count{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 #scroller{
-  max-height:var(--list-max,336px); overflow-y:auto; overscroll-behavior:contain;
+  max-height:var(--lexorank-list-height, var(--list-max, 336px)); overflow-y:auto; overscroll-behavior:contain;
   scrollbar-width:thin; scrollbar-color:#D8D6E4 transparent;
   /* fade the clipped edges instead of showing a hard cut */
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
