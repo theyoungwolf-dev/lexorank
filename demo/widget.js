@@ -1,5 +1,5 @@
 /**
- * <lexorank-demo> — an embeddable, self-isolating demo of @theyoungwolf/lexorank.
+ * <lexorank-demo> - an embeddable, self-isolating demo of @theyoungwolf/lexorank.
  *
  *   <lexorank-demo></lexorank-demo>
  *   <script type="module" src=".../widget.js"></script>
@@ -263,7 +263,7 @@ class LexorankDemo extends HTMLElement {
       for (const t of sorted()) {
         const deep = minorLength(t.rank) > 8;
         const el = document.createElement("div");
-        el.className = "card" + (t.id === flashId ? " flash" : "");
+        el.className = `card ${t.id === flashId ? "flash" : ""}`;
         el.dataset.id = t.id;
         el.tabIndex = 0;
         el.innerHTML = `<span class="grip" aria-hidden="true">⣿</span><span class="title"></span><span class="rank${
@@ -287,7 +287,7 @@ class LexorankDemo extends HTMLElement {
         deepest === 0
           ? "Zero in ordinary use. Grows only when cards land in the same slot repeatedly."
           : deepest > 24
-            ? `${deepest} of ${MAXD} digits. Time to rebalance — the button clears it.`
+            ? `${deepest} of ${MAXD} digits. Time to rebalance - the button clears it.`
             : `${deepest} of ${MAXD} digits. Plenty of room left.`;
       $("rebalance").disabled = deepest === 0;
     }
@@ -324,7 +324,7 @@ class LexorankDemo extends HTMLElement {
 
       const row = rows.find((t) => t.id === id);
       if (row.rank === next) {
-        log("already there — no write", "dim");
+        log("already there - no write", "dim");
         return;
       }
       row.rank = next;
