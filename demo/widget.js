@@ -15,7 +15,13 @@
  */
 
 const DEFAULT_LIB = "https://esm.sh/@theyoungwolf/lexorank@^0.1";
-const TITLES = ["Design the schema", "Build the API", "Write the tests", "Ship to staging", "Update the docs"];
+const TITLES = [
+  "Design the schema",
+  "Build the API",
+  "Write the tests",
+  "Ship to staging",
+  "Update the docs",
+];
 
 const CSS = `
 /* Only layout-neutral things live on :host. Any rule in the host page that
@@ -210,7 +216,15 @@ class LexorankDemo extends HTMLElement {
   #boot(shadow, root, lex) {
     root.innerHTML = HTML;
 
-    const { firstRank, rankAfter, rankBetween, compareRanks, minorLength, rebalance, MAX_MINOR_LENGTH } = lex;
+    const {
+      firstRank,
+      rankAfter,
+      rankBetween,
+      compareRanks,
+      minorLength,
+      rebalance,
+      MAX_MINOR_LENGTH,
+    } = lex;
     const MAXD = MAX_MINOR_LENGTH ?? 128;
     const $ = (id) => shadow.getElementById(id);
     const listEl = $("list");
@@ -237,7 +251,10 @@ class LexorankDemo extends HTMLElement {
       scroller.classList.toggle("no-scroll", !overflowing);
       if (!overflowing) return;
       scroller.classList.toggle("at-top", scroller.scrollTop <= 1);
-      scroller.classList.toggle("at-bottom", scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1);
+      scroller.classList.toggle(
+        "at-bottom",
+        scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1,
+      );
     }
     scroller.addEventListener("scroll", updateFade, { passive: true });
 
@@ -270,8 +287,8 @@ class LexorankDemo extends HTMLElement {
         deepest === 0
           ? "Zero in ordinary use. Grows only when cards land in the same slot repeatedly."
           : deepest > 24
-          ? `${deepest} of ${MAXD} digits. Time to rebalance — the button clears it.`
-          : `${deepest} of ${MAXD} digits. Plenty of room left.`;
+            ? `${deepest} of ${MAXD} digits. Time to rebalance — the button clears it.`
+            : `${deepest} of ${MAXD} digits. Plenty of room left.`;
       $("rebalance").disabled = deepest === 0;
     }
 
@@ -361,7 +378,10 @@ class LexorankDemo extends HTMLElement {
       // Scrolling moves the card with its container, so fold that in.
       const dy = drag.lastY - drag.startY + (scroller.scrollTop - drag.startScroll);
       drag.el.style.transform = `translateY(${dy}px)`;
-      const to = Math.max(0, Math.min(listEl.children.length - 1, drag.from + Math.round(dy / drag.h)));
+      const to = Math.max(
+        0,
+        Math.min(listEl.children.length - 1, drag.from + Math.round(dy / drag.h)),
+      );
       if (to === drag.to) return;
       drag.to = to;
       for (const [i, c] of [...listEl.children].entries()) {
@@ -370,8 +390,8 @@ class LexorankDemo extends HTMLElement {
           i > drag.from && i <= to
             ? `translateY(${-drag.h}px)`
             : i < drag.from && i >= to
-            ? `translateY(${drag.h}px)`
-            : "";
+              ? `translateY(${drag.h}px)`
+              : "";
       }
     }
 
