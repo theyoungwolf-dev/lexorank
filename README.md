@@ -11,7 +11,6 @@
     without renumbering their neighbours.
   </p>
 </div>
-
 <div align="center">
 
 [![npm version](https://img.shields.io/npm/v/@theyoungwolf/lexorank.svg?style=flat-square)](https://www.npmjs.com/package/@theyoungwolf/lexorank)
@@ -25,8 +24,19 @@
 </div>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/writes-comparison.png"
-       alt="Integer positions rewrite three rows; string ranks rewrite one" width="680">
+  <a href="https://lexorank.theyoungwolf.dev">
+    <img src="https://raw.githubusercontent.com/theyoungwolf-dev/lexorank/HEAD/assets/writes-comparison.png"
+         alt="Integer positions rewrite three rows; string ranks rewrite one" width="680">
+  </a>
+</div>
+
+<div align="center">
+  <h3>
+    <a href="https://lexorank.theyoungwolf.dev">Live demo</a>
+    &nbsp;·&nbsp;
+    <a href="https://www.theyoungwolf.dev/projects/lexorank">Blog post</a>
+  </h3>
+  <p><i>Drag a card. Watch how rankings work.</i></p>
 </div>
 
 ## Table of contents
