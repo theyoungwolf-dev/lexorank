@@ -1,5 +1,11 @@
 # @theyoungwolf/lexorank
 
+## 0.1.2
+
+### Patch Changes
+
+- a781c87: Update Readme to add live demo and blog post
+
 ## 0.1.1
 
 ### Patch Changes

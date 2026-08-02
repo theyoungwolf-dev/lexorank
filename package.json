@@ -1,6 +1,6 @@
 {
   "name": "@theyoungwolf/lexorank",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A feature-rich TypeScript implementation of the LexoRank ordered-ranking algorithm: bucket overflow, major/minor fractional precision, and batch insertion.",
   "keywords": [
     "lexorank",
