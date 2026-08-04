@@ -1,19 +1,23 @@
-# lexorank demo widget
+# Lexorank Demo Widget
 
 An embeddable, self-isolating demo of `@theyoungwolf/lexorank`. One file, no build
 step, no bundler. The library is fetched from a CDN at runtime, so **this widget
 does not need rebuilding when a new version of the library ships**.
 
+[See it running →](https://lexorank.theyoungwolf.dev)
+
 ## Embed it
 
 ```html
 <lexorank-demo></lexorank-demo>
-<script type="module" src="https://cdn.jsdelivr.net/gh/theyoungwolf-dev/lexorank@main/demo/widget.js"></script>
+<script type="module" src="https://lexorank.theyoungwolf.dev/widget.js"></script>
 ```
 
 That is the whole snippet. `type="module"` is deferred by default, so it never
 blocks rendering, and the element renders wherever you place the tag rather than
 wherever the script happens to sit.
+
+_Served from a domain I control, so updates are live on deploy_
 
 ## Version pinning
 
@@ -87,7 +91,7 @@ hidden entirely when the list fits.
 Change the cap with a custom property:
 
 ```html
-<lexorank-demo style="--list-max:240px"></lexorank-demo>
+<lexorank-demo style="--lexorank-list-height:240px"></lexorank-demo>
 ```
 
 Dragging works inside the scroll region: hold a card near the top or bottom edge
@@ -122,8 +126,9 @@ box, and the host page is unaffected.
 npx serve .          # or: python3 -m http.server
 ```
 
-`index.html` points the widget at a local copy of the library and applies hostile
-host styles, so it doubles as the isolation test.
+`index.html` is the public demo page and loads the library from the CDN.
+`test.html` applies deliberately hostile host styles, so it doubles as the
+isolation test.
 
 ## What it demonstrates
 
