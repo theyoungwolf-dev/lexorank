@@ -76,8 +76,11 @@ export function computeRanks(
     high = toBound(next);
   }
 
+  let ceilingIsOpen = next === null;
+
   if (low.bucket < high.bucket) {
     high = { bucket: low.bucket, major: HIGHEST_MAJOR, minor: ":" };
+    ceilingIsOpen = true;
   }
 
   if (low.major !== high.major) {
@@ -86,9 +89,11 @@ export function computeRanks(
     if (found !== null) {
       return found;
     }
+
+    ceilingIsOpen = true;
   }
 
-  return minorSpaceRanks(count, low, high, maxMinorLength);
+  return minorSpaceRanks(count, low, high, maxMinorLength, ceilingIsOpen);
 }
 
 /**
@@ -161,28 +166,30 @@ function minorSpaceRanks(
   lowIn: Bound,
   highIn: Bound,
   maxMinorLength: number,
+  ceilingIsOpen: boolean,
 ): Position[] {
   const low = { ...lowIn };
   const high = { ...highIn };
 
-  // A bare ":" carries no information to compare against, so inflate it to the
-  // relevant absolute boundary before measuring.
+  let open = ceilingIsOpen;
+
   if (low.minor === ":") {
     low.minor = `:${LOWEST_MAJOR}`;
   }
 
-  if (high.minor === ":") {
+  let highPad = MIN_CHAR;
+
+  if (open) {
     high.minor = `:${HIGHEST_MAJOR}`;
+    highPad = MAX_CHAR;
   }
 
   let prefix = "";
   let depth = 0;
 
-  // `prefix` carries the leading ":", so `prefix.length` equals the digit count
-  // of the minor this iteration would produce. Bounded accordingly.
   while (prefix.length <= maxMinorLength) {
     const lowChar = charAt(low.minor, depth, MIN_CHAR);
-    const highChar = charAt(high.minor, depth, MAX_CHAR);
+    const highChar = charAt(high.minor, depth, highPad);
 
     if (lowChar === highChar) {
       prefix += chr(lowChar);
@@ -194,13 +201,15 @@ function minorSpaceRanks(
 
     if (mids === null) {
       const lowAfter = orderOf(charAt(low.minor, depth + 1, MIN_CHAR));
-      const highAfter = orderOf(charAt(high.minor, depth + 1, MAX_CHAR));
+      const highAfter = orderOf(charAt(high.minor, depth + 1, highPad));
 
       const roomAbove = MAX_ORDER - lowAfter;
       const roomBelow = depth + 1 >= high.minor.length ? 0 : highAfter;
 
       if (roomAbove >= roomBelow) {
         high.minor = high.minor.slice(0, depth) + chr(lowChar);
+        open = true;
+        highPad = MAX_CHAR;
         prefix += chr(lowChar);
       } else {
         low.minor = low.minor.slice(0, depth) + chr(highChar);

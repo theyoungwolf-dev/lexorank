@@ -567,3 +567,177 @@ describe("generateEntropy", () => {
     expect(() => generateEntropy(2.5)).toThrow(LexorankError);
   });
 });
+
+describe("open ceilings across a major boundary", () => {
+  // Grow a deep fraction at the top of one major and a shallow one at the
+  // bottom of the next. On a real board these become neighbours as soon as the
+  // item that used to sit between them is deleted.
+  const LOW_ANCHOR = "0|000000:";
+  const MID_ANCHOR = "0|000001:";
+  const HIGH_ANCHOR = "0|000002:";
+
+  const belowBoundary = (steps: number): string => {
+    let value = LOW_ANCHOR;
+    for (let i = 0; i < steps; i++) value = rankBetween(value, MID_ANCHOR);
+    return value;
+  };
+
+  const aboveBoundary = (steps: number): string => {
+    let value = HIGH_ANCHOR;
+    for (let i = 0; i < steps; i++) value = rankBetween(MID_ANCHOR, value);
+    return value;
+  };
+
+  it("places a rank between two library-built bounds either side of the boundary", () => {
+    const low = belowBoundary(20);
+    const high = aboveBoundary(20);
+
+    expect(low < high).toBe(true);
+
+    const mid = rankBetween(low, high);
+
+    expect(low < mid).toBe(true);
+    expect(mid < high).toBe(true);
+    expect(isValidRank(mid)).toBe(true);
+  });
+
+  it("holds across every combination of depths on both sides", () => {
+    const lows = Array.from({ length: 40 }, (_, i) => belowBoundary(i + 1));
+    const highs = Array.from({ length: 40 }, (_, i) => aboveBoundary(i + 1));
+
+    let checked = 0;
+
+    for (const low of lows) {
+      for (const high of highs) {
+        if (!(low < high)) continue;
+
+        const mid = rankBetween(low, high);
+
+        expect(low < mid && mid < high).toBe(true);
+        checked++;
+      }
+    }
+
+    expect(checked).toBeGreaterThan(1000);
+  });
+
+  it("does not treat the upper bound's fraction as a constraint", () => {
+    // "0|000001:0U" carries a *smaller* fraction than "0|000000:zj" despite
+    // sorting above it. Comparing the two fractions directly runs descending.
+    const mid = rankBetween("0|000000:zj", "0|000001:0U");
+
+    expect(mid).toBe("0|000000:zr");
+    expect("0|000000:zj" < mid && mid < "0|000001:0U").toBe(true);
+  });
+
+  it("keeps the result above prev when the pivot borrows from the low side", () => {
+    // This is the case a partial fix gets wrong: after borrowing lowChar as the
+    // shared prefix the ceiling becomes open, and forgetting that returns a
+    // value *below* prev.
+    for (const [low, high] of [
+      ["0|000000:U1", "0|000001:1"],
+      ["0|000000:zz", "0|000001:01"],
+      ["0|000000:z1", "0|000001:Uz"],
+    ] as [string, string][]) {
+      const mid = rankBetween(low, high);
+
+      expect(low < mid).toBe(true);
+      expect(mid < high).toBe(true);
+    }
+  });
+
+  it("applies to batches too", () => {
+    const low = belowBoundary(12);
+    const high = aboveBoundary(12);
+
+    const out = ranksBetween(5, low, high);
+
+    expect(out).toHaveLength(5);
+    expect([...out].sort()).toEqual(out);
+    for (const rank of out) expect(low < rank && rank < high).toBe(true);
+  });
+});
+
+describe("ordering invariant over an exhaustive corpus", () => {
+  // The regression above is one shape. This is the net that catches the next
+  // one: every ordered pair of every rank shape, checked for the only property
+  // that matters.
+  const corpus = (): string[] => {
+    const majors = ["000000", "000001", "00000z", "0000zz", "UUUUUU", "zzzzzy", "zzzzzz"];
+    const minors = [":", ":1", ":U", ":z", ":01", ":0U", ":1U", ":U1", ":z1", ":zz", ":zzz"];
+    const out: string[] = [];
+
+    for (const bucket of [0, 1, 2]) {
+      for (const major of majors) {
+        for (const minor of minors) out.push(`${bucket}|${major}${minor}`);
+      }
+    }
+
+    return out;
+  };
+
+  it("never returns a value outside its bounds, and never throws", () => {
+    const values = corpus();
+    let generated = 0;
+
+    for (const low of values) {
+      for (const high of values) {
+        if (!(low < high)) continue;
+
+        const mid = rankBetween(low, high);
+
+        expect(low < mid && mid < high).toBe(true);
+        expect(isValidRank(mid)).toBe(true);
+        generated++;
+      }
+    }
+
+    expect(generated).toBeGreaterThan(20000);
+  });
+});
+
+describe("deletion reshapes neighbours", () => {
+  it("stays ordered through interleaved inserts and deletes", () => {
+    // Deletion is what turns two non-adjacent ranks into neighbours, which is
+    // how the boundary shape above arises in the first place.
+    let seed = 20260812;
+    const random = (): number => {
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      seed >>>= 0;
+      return seed / 4294967296;
+    };
+
+    let list = [firstRank()];
+    for (let i = 0; i < 20; i++) list.push(rankAfter(list[list.length - 1] as string));
+
+    for (let step = 0; step < 20000; step++) {
+      if (random() < 0.45 && list.length > 2) {
+        list.splice(Math.floor(random() * list.length), 1);
+        continue;
+      }
+
+      const at = Math.min(list.length, 1 + Math.floor(random() * Math.min(4, list.length)));
+      const prev = at > 0 ? (list[at - 1] as string) : null;
+      const next = at < list.length ? (list[at] as string) : null;
+
+      let rank: string;
+
+      try {
+        rank = rankBetween(prev, next);
+      } catch {
+        list = list.map((_, i) => (i === 0 ? firstRank() : "")).filter(Boolean);
+        for (let i = 1; i < 8; i++) list.push(rankAfter(list[i - 1] as string));
+        continue;
+      }
+
+      list.splice(at, 0, rank);
+    }
+
+    expect([...list].sort()).toEqual(list);
+    expect(new Set(list).size).toBe(list.length);
+    for (const rank of list) expect(isValidRank(rank)).toBe(true);
+    expect(Math.max(...list.map(minorLength))).toBeLessThan(64);
+  });
+});

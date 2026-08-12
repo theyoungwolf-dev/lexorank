@@ -45,6 +45,7 @@
 - [Installing](#installing)
   - [Package manager](#package-manager)
   - [Importing](#importing)
+  - [Storing ranks in a database](#storing-ranks-in-a-database)
 - [Example](#example)
 - [The two modes](#the-two-modes)
   - [Open bounds](#open-bounds)
@@ -79,7 +80,7 @@
 ## Features
 
 - Reorder items by writing **one row**, never renumbering the rest of the list.
-- Ranks sort correctly as **plain strings** - no custom collation in your database.
+- Ranks sort correctly as **plain strings**.
 - **Zero dependencies.** Ships ESM and CommonJS with type declarations for each.
 - **One unconditional guarantee** - `prev < result < next`, re-checked at runtime on every call.
 - **Effectively infinite precision** - a fixed-width integer component backed by a Base-62 minor.
@@ -127,6 +128,17 @@ const { firstRank, rankAfter, rankBetween } = require("@theyoungwolf/lexorank");
 ```
 
 Types are bundled - no `@types/*` package is needed.
+
+### Storing ranks in a database
+
+> [!IMPORTANT]
+> Ranks sort correctly under **byte** comparison. Most databases do not compare text by bytes, so the column type matters.
+
+| Database   | Use                               | Why                                                                    |
+| ---------- | --------------------------------- | ---------------------------------------------------------------------- |
+| PostgreSQL | `bytea`, or `varchar COLLATE "C"` | The default locale sorts case as a tie-break, not a primary difference |
+| MySQL      | `VARBINARY`, or `..._bin`         | `utf8mb4_0900_ai_ci` treats `U` and `u` as equal                       |
+| SQLite     | `TEXT` (default `BINARY`)         | Already byte-ordered                                                   |
 
 ## Example
 
@@ -407,7 +419,7 @@ try {
 - **major** - fixed 6-character Base-62 integer; sequential steps of 1,000,000 leave insertion runway
 - **minor** - Base-62 fraction, used once the integer space between two neighbours is exhausted, bounded by `MAX_MINOR_LENGTH`
 
-Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings - no custom collation in your database. Ordinary ranks are 9-13 bytes.
+Because every component is fixed-width or suffix-only, ranks sort correctly as plain strings. Ordinary ranks are 9-13 bytes.
 
 ### Canonical form
 

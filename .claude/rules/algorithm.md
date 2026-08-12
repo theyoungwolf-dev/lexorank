@@ -36,6 +36,21 @@ Ranks sort correctly as plain strings because every component is fixed-width or 
 - Both loops are bounded by their `while` condition, not by an internal counter. `majorSpaceRanks` is bounded by the major width; `minorSpaceRanks` by `MAX_MINOR_LENGTH`. Termination is structural - keep it that way rather than adding iteration counters.
 - Both functions clone their bounds. They mutate their working copies, so passing a `Position` straight through would corrupt the caller's data.
 
+## The ceiling is conditional
+
+`minorSpaceRanks` searches a fraction that always belongs to `low.major`. The
+upper bound only constrains that fraction when both bounds share a major _and_
+the caller supplied a ceiling. Otherwise anything carrying `low.major` sorts
+below `high` whatever its fraction, and `high.minor` must be discarded rather
+than compared against - comparing fractions across two different majors can run
+descending and produce a value below `low`.
+
+This also holds mid-walk. When the pivot borrows `lowChar` as the shared prefix
+it replaces the ceiling with that prefix, so every string extending it sorts
+below the original bound: the ceiling becomes open from that point on. Forgetting
+the mid-walk case is the subtle half - it fails only for inputs where the pivot
+takes the low branch, which the obvious test cases do not exercise.
+
 ## Base-62 arithmetic
 
 `decodeChar` is a `charCode` lookup table. It returns `-1` for anything outside the alphabet, and `orderOf` throws on that. This is deliberate: without it the implementation would silently coerce unknown characters to 0 or 61, which hides bad data.
